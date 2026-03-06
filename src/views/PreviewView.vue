@@ -1,0 +1,477 @@
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useProjectStore } from '@/stores/projectStore'
+
+const route = useRoute()
+const router = useRouter()
+const projectStore = useProjectStore()
+
+const projectId = computed(() => route.params.id)
+const project = computed(() => projectStore.getProject(projectId.value))
+const slides = computed(() => [...(project.value?.slides || [])].sort((a, b) => a.order - b.order))
+
+const currentIndex = ref(0)
+const containerRef = ref(null)
+const scale = ref(1)
+const showUI = ref(true)
+let uiTimer = null
+
+const currentSlide = computed(() => slides.value[currentIndex.value] || null)
+
+const CANVAS_W = 960
+const CANVAS_H = 540
+
+function calcScale() {
+  if (!containerRef.value) return
+  const bw = containerRef.value.clientWidth
+  const bh = containerRef.value.clientHeight
+  scale.value = Math.min(bw / CANVAS_W, bh / CANVAS_H, 1.5)
+}
+
+function goNext() {
+  if (currentIndex.value < slides.value.length - 1) currentIndex.value++
+}
+function goPrev() {
+  if (currentIndex.value > 0) currentIndex.value--
+}
+function goTo(i) {
+  currentIndex.value = i
+}
+
+function handleKey(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goNext()
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev()
+  if (e.key === 'Escape') exitPreview()
+}
+
+function exitPreview() {
+  router.push({ name: 'editor', params: { id: projectId.value } })
+}
+
+function revealUI() {
+  showUI.value = true
+  clearTimeout(uiTimer)
+  uiTimer = setTimeout(() => { showUI.value = false }, 3000)
+}
+
+const ro = new ResizeObserver(calcScale)
+
+onMounted(() => {
+  if (!project.value) { router.push({ name: 'dashboard' }); return }
+  window.addEventListener('keydown', handleKey)
+  if (containerRef.value) {
+    ro.observe(containerRef.value)
+    calcScale()
+  }
+  revealUI()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKey)
+  ro.disconnect()
+  clearTimeout(uiTimer)
+})
+
+// Element rendering helpers
+function slideBackground(slide) {
+  if (!slide) return {}
+  if (slide.backgroundType === 'gradient' && slide.backgroundGradient) {
+    return { background: slide.backgroundGradient }
+  }
+  if (slide.backgroundType === 'image' && slide.backgroundImage) {
+    return { backgroundImage: `url(${slide.backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+  }
+  return { backgroundColor: slide.background || '#1a1a2e' }
+}
+
+function elementStyle(el) {
+  return {
+    position: 'absolute',
+    left: `${el.x}px`,
+    top: `${el.y}px`,
+    width: `${el.width}px`,
+    height: `${el.height}px`,
+    opacity: el.opacity ?? 1,
+    transform: el.rotation ? `rotate(${el.rotation}deg)` : undefined,
+    overflow: 'hidden',
+    pointerEvents: ['button', 'hotspot', 'quiz'].includes(el.type) ? 'auto' : 'none',
+  }
+}
+
+// Quiz runtime state
+const quizAnswers = ref({})  // elId -> selectedIndex
+const quizSubmitted = ref({}) // elId -> true
+
+function selectOption(elId, idx) {
+  if (quizSubmitted.value[elId]) return
+  quizAnswers.value[elId] = idx
+}
+function submitQuiz(el) {
+  if (quizAnswers.value[el.id] === undefined) return
+  quizSubmitted.value[el.id] = true
+}
+function retryQuiz(elId) {
+  delete quizAnswers.value[elId]
+  delete quizSubmitted.value[elId]
+}
+
+// Hotspot runtime state
+const hotspotOpen = ref({})
+function toggleHotspot(elId) {
+  hotspotOpen.value[elId] = !hotspotOpen.value[elId]
+}
+</script>
+
+<template>
+  <div
+    class="preview-root"
+    @mousemove="revealUI"
+    @click.self="revealUI"
+  >
+    <!-- Slide canvas container -->
+    <div class="canvas-bg" ref="containerRef">
+      <div
+        class="slide-canvas"
+        :style="[slideBackground(currentSlide), { transform: `scale(${scale})`, transformOrigin: 'center center' }]"
+        v-if="currentSlide"
+      >
+        <!-- Elements -->
+        <template v-for="el in [...(currentSlide.elements || [])].sort((a,b) => a.zIndex - b.zIndex)" :key="el.id">
+          <div :style="elementStyle(el)" v-if="el.visible !== false">
+
+            <!-- Text / Heading -->
+            <div v-if="el.type === 'text' || el.type === 'heading'"
+              class="el-text"
+              :style="{
+                fontSize: el.content.fontSize + 'px',
+                color: el.content.color,
+                fontFamily: el.content.fontFamily,
+                fontWeight: el.content.bold ? '700' : (el.type==='heading' ? '700' : '400'),
+                fontStyle: el.content.italic ? 'italic' : 'normal',
+                textDecoration: el.content.underline ? 'underline' : 'none',
+                textAlign: el.content.align,
+                lineHeight: el.content.lineHeight || 1.4,
+                letterSpacing: el.content.letterSpacing ? el.content.letterSpacing + 'px' : undefined,
+                padding: '4px',
+                width: '100%', height: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', wordBreak: 'break-word',
+              }"
+            >{{ el.content.text }}</div>
+
+            <!-- Image -->
+            <img v-else-if="el.type === 'image'"
+              :src="el.content.src"
+              :alt="el.content.alt"
+              :style="{ width: '100%', height: '100%', objectFit: el.content.objectFit || 'cover', borderRadius: el.content.borderRadius ? el.content.borderRadius + 'px' : undefined }"
+            />
+
+            <!-- Shape -->
+            <div v-else-if="el.type === 'shape'" style="width:100%;height:100%">
+              <div v-if="el.content.shape === 'rectangle' || el.content.shape === 'circle'"
+                :style="{
+                  width: '100%', height: '100%',
+                  backgroundColor: el.content.fillColor,
+                  border: `${el.content.strokeWidth||0}px solid ${el.content.strokeColor||'transparent'}`,
+                  borderRadius: el.content.shape === 'circle' ? '50%' : (el.content.borderRadius||0) + 'px',
+                  boxSizing: 'border-box',
+                }"
+              />
+              <svg v-else width="100%" height="100%" :viewBox="`0 0 ${el.width} ${el.height}`" preserveAspectRatio="xMidYMid meet">
+                <polygon v-if="el.content.shape === 'triangle'"
+                  :points="`${el.width/2} 0 ${el.width} ${el.height} 0 ${el.height}`"
+                  :fill="el.content.fillColor" :stroke="el.content.strokeColor" :stroke-width="el.content.strokeWidth||0"
+                />
+                <polygon v-if="el.content.shape === 'diamond'"
+                  :points="`${el.width/2} 0 ${el.width} ${el.height/2} ${el.width/2} ${el.height} 0 ${el.height/2}`"
+                  :fill="el.content.fillColor" :stroke="el.content.strokeColor" :stroke-width="el.content.strokeWidth||0"
+                />
+              </svg>
+            </div>
+
+            <!-- Button -->
+            <div v-else-if="el.type === 'button'" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+              <button
+                :style="{
+                  padding: '8px 20px',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  fontSize: (el.content.fontSize || 14) + 'px',
+                  cursor: 'pointer',
+                  border: '2px solid ' + (el.content.backgroundColor || '#5865f2'),
+                  backgroundColor: el.content.variant === 'outline' || el.content.variant === 'ghost' ? 'transparent' : (el.content.backgroundColor || '#5865f2'),
+                  color: el.content.variant === 'outline' || el.content.variant === 'ghost' ? (el.content.backgroundColor || '#5865f2') : (el.content.textColor || '#fff'),
+                  fontFamily: el.content.fontFamily,
+                }"
+              >{{ el.content.label }}</button>
+            </div>
+
+            <!-- Hotspot -->
+            <div v-else-if="el.type === 'hotspot'" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;">
+              <button
+                class="hotspot-trigger"
+                :style="{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: el.content.color || '#5865f2', border: '3px solid rgba(255,255,255,0.4)', color: '#fff', fontSize: '20px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }"
+                @click="toggleHotspot(el.id)"
+              >+</button>
+              <Transition name="popup">
+                <div v-if="hotspotOpen[el.id]" class="hotspot-popup"
+                  :style="{ position: 'absolute', left: '60px', top: '0', background: '#fff', color: '#111', borderRadius: '8px', padding: '12px 16px', minWidth: '160px', maxWidth: '220px', boxShadow: '0 8px 24px rgba(0,0,0,.3)', zIndex: 10 }"
+                >
+                  <strong style="display:block;margin-bottom:4px;font-size:14px;">{{ el.content.title }}</strong>
+                  <p style="font-size:13px;margin:0;line-height:1.5">{{ el.content.body }}</p>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Video -->
+            <div v-else-if="el.type === 'video'" style="width:100%;height:100%;background:#000;border-radius:4px;overflow:hidden;">
+              <iframe v-if="el.content.src && (el.content.src.includes('youtube') || el.content.src.includes('vimeo'))"
+                :src="el.content.src"
+                width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay"
+              />
+              <video v-else-if="el.content.src" :src="el.content.src" controls style="width:100%;height:100%;object-fit:contain" />
+              <div v-else style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#666;font-size:13px;">No video source</div>
+            </div>
+
+            <!-- Audio -->
+            <div v-else-if="el.type === 'audio'" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box;">
+              <span style="font-size:28px">🎵</span>
+              <span style="font-size:12px;color:#aaa">{{ el.content.label || 'Audio' }}</span>
+              <audio v-if="el.content.src" :src="el.content.src" controls style="width:100%;max-width:240px;" />
+            </div>
+
+            <!-- Quiz -->
+            <div v-else-if="el.type === 'quiz'"
+              style="width:100%;height:100%;padding:16px;box-sizing:border-box;background:rgba(0,0,0,.4);border-radius:6px;overflow:auto;"
+            >
+              <h4 style="margin:0 0 12px;font-size:15px;color:#fff;">{{ el.content.question }}</h4>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button
+                  v-for="(opt, idx) in el.content.options" :key="idx"
+                  @click="selectOption(el.id, idx)"
+                  :style="{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: quizAnswers[el.id] === idx ? '2px solid #5865f2' : '1px solid rgba(255,255,255,.2)',
+                    background: quizSubmitted[el.id]
+                      ? idx === el.content.correctIndex ? 'rgba(87,242,135,.2)' : quizAnswers[el.id] === idx ? 'rgba(237,66,69,.2)' : 'rgba(255,255,255,.05)'
+                      : quizAnswers[el.id] === idx ? 'rgba(88,101,242,.3)' : 'rgba(255,255,255,.05)',
+                    color: '#fff',
+                    textAlign: 'left',
+                    cursor: quizSubmitted[el.id] ? 'default' : 'pointer',
+                    fontSize: '13px',
+                    fontFamily: 'inherit',
+                  }"
+                >{{ opt }}</button>
+              </div>
+              <div v-if="!quizSubmitted[el.id]" style="margin-top:12px;">
+                <button
+                  @click="submitQuiz(el)"
+                  :disabled="quizAnswers[el.id] === undefined"
+                  style="padding:6px 16px;background:#5865f2;border:none;border-radius:6px;color:#fff;font-size:13px;cursor:pointer;font-family:inherit;"
+                >Submit</button>
+              </div>
+              <div v-else style="margin-top:12px;">
+                <p :style="{ color: quizAnswers[el.id] === el.content.correctIndex ? '#57f287' : '#ed4245', fontWeight: 600, fontSize: '13px', margin: '0 0 4px' }">
+                  {{ quizAnswers[el.id] === el.content.correctIndex ? '✓ Correct!' : '✗ Incorrect' }}
+                </p>
+                <p v-if="el.content.explanation" style="font-size:12px;color:#ccc;margin:0 0 8px">{{ el.content.explanation }}</p>
+                <button @click="retryQuiz(el.id)" style="padding:4px 12px;background:transparent;border:1px solid rgba(255,255,255,.3);border-radius:4px;color:#ccc;font-size:12px;cursor:pointer;font-family:inherit;">Try Again</button>
+              </div>
+            </div>
+
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Navigation UI (fades on idle) -->
+    <Transition name="ui-fade">
+      <div class="preview-ui" v-show="showUI">
+        <!-- Top bar -->
+        <div class="preview-topbar">
+          <button class="ui-btn" @click="exitPreview">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back to Editor
+          </button>
+          <span class="preview-title">{{ project?.name }}</span>
+          <span class="slide-counter">{{ currentIndex + 1 }} / {{ slides.length }}</span>
+        </div>
+
+        <!-- Side nav buttons -->
+        <button class="nav-btn nav-btn-left" @click="goPrev" :disabled="currentIndex === 0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="nav-btn nav-btn-right" @click="goNext" :disabled="currentIndex === slides.length - 1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+
+        <!-- Dot nav -->
+        <div class="dot-nav">
+          <button
+            v-for="(s, i) in slides" :key="s.id"
+            :class="['dot', i === currentIndex && 'active']"
+            @click="goTo(i)"
+          />
+        </div>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<style scoped>
+.preview-root {
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 25% 15%, #1a2142, #05070f 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-bg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-canvas {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 30px 90px rgba(0,0,0,.65);
+}
+
+/* Preview UI */
+.preview-ui {
+  pointer-events: none;
+}
+.preview-ui > * { pointer-events: auto; }
+
+.preview-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: linear-gradient(to bottom, rgba(2,8,25,.82), transparent);
+}
+.ui-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.ui-btn:hover { background: rgba(255,255,255,.2); }
+.preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.slide-counter {
+  font-size: 13px;
+  color: rgba(255,255,255,.6);
+  background: rgba(255,255,255,.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s, opacity .2s;
+}
+.nav-btn:disabled { opacity: .2; cursor: default; }
+.nav-btn:not(:disabled):hover { background: rgba(255,255,255,.25); }
+.nav-btn-left { left: 20px; }
+.nav-btn-right { right: 20px; }
+
+.dot-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+  border: none;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+  padding: 0;
+}
+.dot.active { background: #fff; transform: scale(1.3); }
+
+/* Transitions */
+.ui-fade-enter-active, .ui-fade-leave-active { transition: opacity .4s; }
+.ui-fade-enter-from, .ui-fade-leave-to { opacity: 0; }
+
+.popup-enter-active, .popup-leave-active { transition: opacity .2s, transform .2s; }
+.popup-enter-from, .popup-leave-to { opacity: 0; transform: translateX(-6px); }
+
+.hotspot-trigger:hover { transform: scale(1.1); transition: transform .2s; }
+
+.el-text {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .preview-topbar {
+    height: auto;
+    min-height: 52px;
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .preview-title {
+    order: 3;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .nav-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .nav-btn-left { left: 10px; }
+  .nav-btn-right { right: 10px; }
+
+  .dot-nav {
+    bottom: 12px;
+  }
+}
+</style>
