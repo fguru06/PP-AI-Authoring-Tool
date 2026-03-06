@@ -37,11 +37,8 @@ function startEdit() {
 }
 
 function handleInput(e) {
-  const newText = e.target.innerText
-  localText.value = newText
-  projectStore.updateElement(editorStore.projectId, editorStore.currentSlideId, props.element.id, {
-    content: { ...props.element.content, text: newText }
-  })
+  // To avoid resetting cursor during typing, we do nothing here.
+  // The content is saved on @blur in stopEdit.
 }
 
 function handleMouseDown(e) {
