@@ -3,9 +3,11 @@ import { computed, ref } from 'vue'
 import Modal from '@/components/common/Modal.vue'
 import { useEditorStore } from '@/stores/editorStore'
 import { useProjectStore } from '@/stores/projectStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const editorStore = useEditorStore()
 const projectStore = useProjectStore()
+const authStore = useAuthStore()
 
 const project = computed(() => projectStore.getProject(editorStore.projectId))
 const activeTab = ref('json') // 'json' | 'html' | 'scorm'
@@ -213,11 +215,32 @@ ${slidesHTML}
 
 <template>
   <Modal title="Export Project" size="md" @close="editorStore.showExportModal = false">
-    <div class="export-tabs tabs">
-      <button :class="['tab-btn', activeTab === 'json' && 'active']" @click="activeTab = 'json'">JSON Project</button>
-      <button :class="['tab-btn', activeTab === 'html' && 'active']" @click="activeTab = 'html'">HTML Package</button>
-      <button :class="['tab-btn', activeTab === 'scorm' && 'active']" @click="activeTab = 'scorm'">SCORM</button>
-    </div>
+    <template v-if="!authStore.user">
+      <div class="auth-gate" style="text-align: center; padding: 40px 20px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5; margin-bottom: 16px; margin-inline: auto;">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Sign up to export</h3>
+        <p style="font-size: 14px; color: #64748b; margin-bottom: 32px;">Create a free account to export, save, and share your presentations.</p>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin: 0 auto;">
+          <button class="btn btn-secondary" style="width: 100%; justify-content: center; gap: 8px;" @click="authStore.loginWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8m-4-4h8"/></svg>
+            Continue with Google
+          </button>
+          <button class="btn btn-secondary" style="width: 100%; justify-content: center; gap: 8px;" @click="authStore.loginWithMicrosoft()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Continue with Microsoft
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="export-tabs tabs">
+        <button :class="['tab-btn', activeTab === 'json' && 'active']" @click="activeTab = 'json'">JSON Project</button>
+        <button :class="['tab-btn', activeTab === 'html' && 'active']" @click="activeTab = 'html'">HTML Package</button>
+        <button :class="['tab-btn', activeTab === 'scorm' && 'active']" @click="activeTab = 'scorm'">SCORM</button>
+      </div>
 
     <div class="export-content">
       <!-- JSON Export -->
@@ -295,6 +318,8 @@ ${slidesHTML}
         </div>
       </Transition>
     </div>
+    </template>
+    
     <template #footer>
       <button class="btn btn-secondary" @click="editorStore.showExportModal = false">Close</button>
     </template>

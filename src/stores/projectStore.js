@@ -246,17 +246,17 @@ function getTemplateBlueprint(templateId, name) {
 }
 
 function load(userId) {
-  if (!userId) return []
+  const key = userId ? `${STORAGE_KEY}_${userId}` : `${STORAGE_KEY}_anonymous`
   try {
-    const raw = localStorage.getItem(`${STORAGE_KEY}_${userId}`)
+    const raw = localStorage.getItem(key)
     return raw ? JSON.parse(raw) : []
   } catch { return [] }
 }
 
 function save(projects, userId) {
-  if (!userId) return
+  const key = userId ? `${STORAGE_KEY}_${userId}` : `${STORAGE_KEY}_anonymous`
   try {
-    localStorage.setItem(`${STORAGE_KEY}_${userId}`, JSON.stringify(projects))
+    localStorage.setItem(key, JSON.stringify(projects))
   } catch {}
 }
 
@@ -265,7 +265,25 @@ export const useProjectStore = defineStore('projects', () => {
   const projects = ref([])
 
   watch(() => authStore.user, (user) => {
-    projects.value = load(user?.uid)
+    const loadedProjects = load(user?.uid)
+    
+    if (user?.uid) {
+      const anonProjects = load(null)
+      if (anonProjects.length > 0) {
+        // Find distinct projects (basic merge by ID to avoid duplicates if any)
+        anonProjects.forEach(ap => {
+          if (!loadedProjects.find(p => p.id === ap.id)) {
+            loadedProjects.push(ap)
+          }
+        })
+        localStorage.removeItem(`${STORAGE_KEY}_anonymous`)
+      }
+    }
+    
+    projects.value = loadedProjects
+    if (user?.uid) {
+      persist()
+    }
   }, { immediate: true, flush: 'sync' })
 
   const sortedProjects = computed(() =>
