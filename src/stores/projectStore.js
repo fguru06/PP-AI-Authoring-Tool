@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { v4 as uuid } from 'uuid'
+import { useAuthStore } from './authStore'
 
 const STORAGE_KEY = 'elearn_projects'
 
@@ -244,28 +245,35 @@ function getTemplateBlueprint(templateId, name) {
   }
 }
 
-function load() {
+function load(userId) {
+  if (!userId) return []
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(`${STORAGE_KEY}_${userId}`)
     return raw ? JSON.parse(raw) : []
   } catch { return [] }
 }
 
-function save(projects) {
+function save(projects, userId) {
+  if (!userId) return
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
+    localStorage.setItem(`${STORAGE_KEY}_${userId}`, JSON.stringify(projects))
   } catch {}
 }
 
 export const useProjectStore = defineStore('projects', () => {
-  const projects = ref(load())
+  const authStore = useAuthStore()
+  const projects = ref([])
+
+  watch(() => authStore.user, (user) => {
+    projects.value = load(user?.uid)
+  }, { immediate: true, flush: 'sync' })
 
   const sortedProjects = computed(() =>
     [...projects.value].sort((a, b) => b.updatedAt - a.updatedAt)
   )
 
   function persist() {
-    save(projects.value)
+    save(projects.value, authStore.user?.uid)
   }
 
   function createProject(name) {

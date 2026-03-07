@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useEditorStore } from '@/stores/editorStore'
 import { useProjectStore } from '@/stores/projectStore'
+import { useAuthStore } from '@/stores/authStore'
 import { useKeyboardShortcuts } from '@/composables/useDrag'
 
 import SlidePanel from '@/components/editor/SlidePanel.vue'
@@ -18,6 +19,7 @@ const route = useRoute()
 const router = useRouter()
 const editorStore = useEditorStore()
 const projectStore = useProjectStore()
+const authStore = useAuthStore()
 
 const projectId = computed(() => route.params.id)
 const project = computed(() => projectStore.getProject(projectId.value))
@@ -39,19 +41,25 @@ watch(() => project.value, (newVal) => {
   }, 600)
 }, { deep: true })
 
-onMounted(() => {
-  if (!project.value) {
-    router.push({ name: 'dashboard' })
-    return
-  }
-  editorStore.setProject(projectId.value)
-  if (slides.value.length > 0) {
-    editorStore.setCurrentSlide(slides.value[0].id)
-  }
-  
-  // Save initial state for undo
-  editorStore.pushHistory(project.value)
-})
+// Wait for auth to be ready before evaluating if project exists
+watch(
+  () => authStore.isAuthReady,
+  (isReady) => {
+    if (isReady) {
+      if (!project.value) {
+        router.push({ name: 'dashboard' })
+        return
+      }
+      editorStore.setProject(projectId.value)
+      if (slides.value.length > 0) {
+        editorStore.setCurrentSlide(slides.value[0].id)
+      }
+      // Save initial state for undo
+      editorStore.pushHistory(project.value)
+    }
+  },
+  { immediate: true }
+)
 
 // Auto-save label
 const saveLabel = computed(() => {

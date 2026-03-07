@@ -1,11 +1,13 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
+const authStore = useAuthStore()
 
 const projectId = computed(() => route.params.id)
 const project = computed(() => projectStore.getProject(projectId.value))
@@ -57,8 +59,20 @@ function revealUI() {
 
 const ro = new ResizeObserver(calcScale)
 
+watch(
+  () => authStore.isAuthReady,
+  (isReady) => {
+    if (isReady) {
+      if (!project.value) {
+        router.push({ name: 'dashboard' })
+        return
+      }
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
-  if (!project.value) { router.push({ name: 'dashboard' }); return }
   window.addEventListener('keydown', handleKey)
   if (containerRef.value) {
     ro.observe(containerRef.value)
