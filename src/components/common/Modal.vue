@@ -36,8 +36,11 @@ const emit = defineEmits(['close'])
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 8, 22, 0.72);
-  backdrop-filter: blur(8px);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.16), transparent 22%),
+    radial-gradient(circle at 80% 75%, rgba(251, 191, 36, 0.12), transparent 22%),
+    rgba(4, 8, 22, 0.54);
+  backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,10 +48,11 @@ const emit = defineEmits(['close'])
   padding: 20px;
 }
 .modal-box {
-  background: color-mix(in srgb, var(--color-surface-raised) 90%, #0c1124 10%);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  background: rgba(255,255,255,0.94);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: 24px;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 48px);
@@ -64,8 +68,9 @@ const emit = defineEmits(['close'])
   align-items: center;
   justify-content: space-between;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.92);
   flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(248,250,252,0.9), rgba(255,255,255,0.78));
 }
 .modal-title {
   font-size: var(--text-2xl);
@@ -75,6 +80,12 @@ const emit = defineEmits(['close'])
 .modal-close {
   margin-left: auto;
   color: var(--color-text-muted);
+  background: rgba(248,250,252,0.95);
+  border: 1px solid rgba(226,232,240,0.9);
+}
+.modal-close:hover {
+  color: var(--color-text);
+  background: #ffffff;
 }
 .modal-body {
   padding: 20px;
@@ -83,11 +94,12 @@ const emit = defineEmits(['close'])
 }
 .modal-footer {
   padding: 14px 20px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid rgba(226, 232, 240, 0.92);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
   flex-shrink: 0;
+  background: rgba(248,250,252,0.72);
 }
 
 /* Transition */
@@ -107,7 +119,7 @@ const emit = defineEmits(['close'])
 
   .modal-box {
     width: 100% !important;
-    border-radius: 16px 16px 0 0;
+    border-radius: 20px 20px 0 0;
     max-height: calc(100vh - 8px);
   }
 }

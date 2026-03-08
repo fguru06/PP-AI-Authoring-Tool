@@ -142,16 +142,20 @@ function toggleHotspot(elId) {
     @mousemove="revealUI"
     @click.self="revealUI"
   >
+    <div class="preview-orb preview-orb-left"></div>
+    <div class="preview-orb preview-orb-right"></div>
+    <div class="preview-grid"></div>
+
     <!-- Slide canvas container -->
     <div class="canvas-bg" ref="containerRef">
-      <div
-        class="slide-canvas"
-        :style="[slideBackground(currentSlide), { transform: `scale(${scale})`, transformOrigin: 'center center' }]"
-        v-if="currentSlide"
-      >
-        <!-- Elements -->
-        <template v-for="el in [...(currentSlide.elements || [])].sort((a,b) => a.zIndex - b.zIndex)" :key="el.id">
-          <div :style="elementStyle(el)" v-if="el.visible !== false">
+      <div class="preview-stage" v-if="currentSlide">
+        <div
+          class="slide-canvas"
+          :style="[slideBackground(currentSlide), { transform: `scale(${scale})`, transformOrigin: 'center center' }]"
+        >
+          <!-- Elements -->
+          <template v-for="el in [...(currentSlide.elements || [])].sort((a,b) => a.zIndex - b.zIndex)" :key="el.id">
+            <div :style="elementStyle(el)" v-if="el.visible !== false">
 
             <!-- Text / Heading -->
             <div v-if="el.type === 'text' || el.type === 'heading'"
@@ -292,8 +296,9 @@ function toggleHotspot(elId) {
               </div>
             </div>
 
-          </div>
-        </template>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -335,12 +340,51 @@ function toggleHotspot(elId) {
 .preview-root {
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at 25% 15%, #1a2142, #05070f 60%);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(139, 92, 246, 0.24), transparent 20%),
+    radial-gradient(circle at 82% 72%, rgba(59, 130, 246, 0.18), transparent 24%),
+    linear-gradient(180deg, #08101f, #040812 58%, #02050b);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
+}
+
+.preview-orb,
+.preview-grid {
+  position: absolute;
+  pointer-events: none;
+}
+
+.preview-orb {
+  border-radius: 999px;
+  filter: blur(16px);
+}
+
+.preview-orb-left {
+  top: -140px;
+  left: -80px;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.16), transparent 70%);
+}
+
+.preview-orb-right {
+  right: -120px;
+  bottom: -160px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.18), transparent 72%);
+}
+
+.preview-grid {
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,0.55), transparent 88%);
 }
 
 .canvas-bg {
@@ -349,6 +393,26 @@ function toggleHotspot(elId) {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.preview-stage {
+  position: relative;
+  padding: 18px;
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 30px 80px rgba(0,0,0,.34);
+}
+
+.preview-stage::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none;
 }
 
 .slide-canvas {
@@ -356,8 +420,8 @@ function toggleHotspot(elId) {
   height: 540px;
   position: relative;
   overflow: hidden;
-  border-radius: 12px;
-  box-shadow: 0 30px 90px rgba(0,0,0,.65);
+  border-radius: 18px;
+  box-shadow: 0 30px 90px rgba(0,0,0,.5);
 }
 
 /* Preview UI */
@@ -369,38 +433,40 @@ function toggleHotspot(elId) {
 .preview-topbar {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 52px;
+  height: 62px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  background: linear-gradient(to bottom, rgba(2,8,25,.82), transparent);
+  padding: 0 24px;
+  background: linear-gradient(to bottom, rgba(2,8,25,.78), rgba(2,8,25,.34), transparent);
 }
 .ui-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.22);
-  border-radius: 6px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
   color: #fff;
   font-size: 13px;
   font-family: inherit;
-  padding: 6px 14px;
+  padding: 8px 16px;
   cursor: pointer;
-  transition: background .2s;
+  transition: background .2s, transform .2s;
 }
-.ui-btn:hover { background: rgba(255,255,255,.2); }
+.ui-btn:hover { background: rgba(255,255,255,.18); transform: translateY(-1px); }
 .preview-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: .01em;
   color: #fff;
 }
 .slide-counter {
   font-size: 13px;
-  color: rgba(255,255,255,.6);
-  background: rgba(255,255,255,.1);
-  padding: 4px 12px;
+  color: rgba(255,255,255,.74);
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 6px 12px;
   border-radius: 20px;
 }
 
@@ -408,22 +474,22 @@ function toggleHotspot(elId) {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
   color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background .2s, opacity .2s;
+  transition: background .2s, opacity .2s, transform .2s;
 }
 .nav-btn:disabled { opacity: .2; cursor: default; }
-.nav-btn:not(:disabled):hover { background: rgba(255,255,255,.25); }
-.nav-btn-left { left: 20px; }
-.nav-btn-right { right: 20px; }
+.nav-btn:not(:disabled):hover { background: rgba(255,255,255,.2); transform: translateY(-50%) scale(1.04); }
+.nav-btn-left { left: 28px; }
+.nav-btn-right { right: 28px; }
 
 .dot-nav {
   position: fixed;
@@ -434,16 +500,16 @@ function toggleHotspot(elId) {
   gap: 8px;
 }
 .dot {
-  width: 8px;
+  width: 10px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 999px;
   background: rgba(255,255,255,.3);
   border: none;
   cursor: pointer;
   transition: background .2s, transform .2s;
   padding: 0;
 }
-.dot.active { background: #fff; transform: scale(1.3); }
+.dot.active { width: 28px; background: #fff; transform: scale(1); }
 
 /* Transitions */
 .ui-fade-enter-active, .ui-fade-leave-active { transition: opacity .4s; }
@@ -461,6 +527,11 @@ function toggleHotspot(elId) {
 }
 
 @media (max-width: 900px) {
+  .preview-stage {
+    padding: 10px;
+    border-radius: 20px;
+  }
+
   .preview-topbar {
     height: auto;
     min-height: 52px;

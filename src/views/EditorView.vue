@@ -206,6 +206,18 @@ function handleAuthoringOption(id) {
     editorStore.toggleSlidePanel()
   }
 }
+
+function isAuthoringOptionActive(id) {
+  if (id === 'text') return ['text', 'heading'].includes(editorStore.activeTool)
+  if (id === 'resources') return editorStore.activeTool === 'image'
+  if (id === 'interactive-elements') return ['hotspot', 'button'].includes(editorStore.activeTool)
+  if (id === 'interactive-questions') return editorStore.activeTool === 'quiz'
+  if (id === 'widgets') return ['shape', 'video', 'audio'].includes(editorStore.activeTool)
+  if (id === 'insert') return editorStore.activeTool === 'select'
+  if (id === 'style' || id === 'background') return editorStore.rightPanelTab === 'properties'
+  if (id === 'pages') return editorStore.showSlidePanel
+  return false
+}
 </script>
 
 <template>
@@ -263,7 +275,7 @@ function handleAuthoringOption(id) {
         <button
           v-for="item in authoringOptions"
           :key="item.id"
-          class="rail-option"
+          :class="['rail-option', isAuthoringOptionActive(item.id) && 'active']"
           @click="handleAuthoringOption(item.id)"
         >
           <span v-if="item.id === 'text'" class="rail-icon">T</span>
@@ -349,7 +361,10 @@ function handleAuthoringOption(id) {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: var(--color-bg);
+  background:
+    radial-gradient(circle at top left, rgba(251, 191, 36, 0.14), transparent 20%),
+    radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.12), transparent 26%),
+    linear-gradient(180deg, #f8fafc, #eef2ff 46%, #f8fafc);
 }
 
 /* Top Bar */
@@ -359,9 +374,10 @@ function handleAuthoringOption(id) {
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-6);
-  background: linear-gradient(90deg, #fbc2eb 0%, #ffeed2 100%);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   flex-shrink: 0;
   gap: var(--space-4);
   z-index: 20;
@@ -373,17 +389,18 @@ function handleAuthoringOption(id) {
   flex: 1;
 }
 .back-btn { 
-  color: #1a1a2e; 
+  color: #0f172a; 
   font-weight: 600;
-  background: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.92);
+  border-color: rgba(148, 163, 184, 0.2);
 }
-.back-btn:hover { background: rgba(255,255,255,0.7); }
+.back-btn:hover { background: rgba(255,255,255,1); }
 .project-name-wrap { flex: 0 1 auto; }
 .project-name-input {
-  background: rgba(255,255,255,0.5);
-  border: 1px solid transparent;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: var(--radius-full);
-  color: #1a1a2e;
+  color: #0f172a;
   font-size: 16px;
   font-weight: 700;
   padding: 6px 16px;
@@ -392,13 +409,13 @@ function handleAuthoringOption(id) {
   outline: none;
   font-family: var(--font-sans);
   transition: all 0.2s ease;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+  box-shadow: inset 0 1px 2px rgba(15,23,42,0.03);
 }
-.project-name-input:hover { border-color: rgba(0,0,0,0.1); background: rgba(255,255,255,0.8); }
+.project-name-input:hover { border-color: rgba(91,33,182,0.16); background: rgba(255,255,255,0.96); }
 .project-name-input:focus { border-color: #6c47ff; background: #fff; box-shadow: 0 0 0 3px rgba(108,71,255,0.15); }
 .save-label {
   font-size: var(--text-xs);
-  color: rgba(26, 26, 46, 0.6);
+  color: #64748b;
   font-weight: 500;
 }
 .topbar-center {
@@ -409,12 +426,12 @@ function handleAuthoringOption(id) {
 .slide-position {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
-  background: rgba(255,255,255,0.6);
+  color: #0f172a;
+  background: rgba(255,255,255,0.82);
   padding: 6px 16px;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 6px 20px rgba(15,23,42,0.05);
 }
 .topbar-right {
   display: flex;
@@ -430,26 +447,27 @@ function handleAuthoringOption(id) {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
 .authoring-rail {
   width: 90px;
-  background: #1e1e24; /* Consistent with Dashboard */
-  border-right: none;
+  background: linear-gradient(180deg, #0f172a, #131c31);
+  border-right: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-2);
   flex-shrink: 0;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  box-shadow: 8px 0 32px rgba(15,23,42,0.12);
   z-index: 10;
 }
 
 .rail-option {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.68);
+  border-radius: 18px;
   min-height: 60px;
   padding: 12px 4px;
   font-size: 11px;
@@ -474,7 +492,20 @@ function handleAuthoringOption(id) {
 
 .rail-option:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255,255,255,0.08);
   color: #fff;
+}
+
+.rail-option.active {
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.28), rgba(59, 130, 246, 0.18));
+  border-color: rgba(196, 181, 253, 0.26);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(76, 29, 149, 0.26);
+}
+
+.rail-option.active .rail-icon {
+  opacity: 1;
+  transform: scale(1.06);
 }
 
 .rail-option:hover .rail-icon {
@@ -485,19 +516,20 @@ function handleAuthoringOption(id) {
 /* Right Panel */
 .right-panel {
   width: var(--sidebar-right-width);
-  background: #ffffff;
-  border-left: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.74);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(148,163,184,0.18);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.02);
+  box-shadow: -12px 0 40px rgba(15,23,42,0.06);
 }
 .panel-tabs {
   display: flex;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(148,163,184,0.16);
   flex-shrink: 0;
-  background: #f8f9fa;
+  background: rgba(248,250,252,0.86);
 }
 .panel-tab {
   flex: 1;
@@ -509,13 +541,13 @@ function handleAuthoringOption(id) {
   background: none;
   border: none;
   cursor: pointer;
-  color: #6c757d;
+  color: #64748b;
   transition: all 0.2s ease;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
 }
-.panel-tab:hover { color: #1a1a2e; background: rgba(0,0,0,0.02); }
-.panel-tab.active { color: #6c47ff; border-bottom-color: #6c47ff; background: #ffffff;}
+.panel-tab:hover { color: #0f172a; background: rgba(255,255,255,0.6); }
+.panel-tab.active { color: #6c47ff; border-bottom-color: #6c47ff; background: rgba(255,255,255,0.9);}
 .tab-icon { font-size: 16px; line-height: 1; }
 .tab-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .panel-content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
@@ -530,6 +562,7 @@ function handleAuthoringOption(id) {
   gap: var(--space-4);
   color: var(--color-text-muted);
   text-align: center;
+  background: linear-gradient(180deg, #f8fafc, #eef2ff);
 }
 .editor-not-found h2 { font-size: var(--text-2xl); color: var(--color-text); }
 

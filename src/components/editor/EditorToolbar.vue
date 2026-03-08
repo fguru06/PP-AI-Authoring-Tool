@@ -171,23 +171,28 @@ function setTool(id) {
   align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-4);
-  background: #ffffff;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(148,163,184,0.16);
   flex-shrink: 0;
   overflow-x: auto;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  box-shadow: 0 10px 30px rgba(15,23,42,0.04);
   z-index: 15;
 }
 .toolbar-group {
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(248,250,252,0.72);
+  border: 1px solid rgba(226,232,240,0.9);
 }
 .toolbar-spacer { flex: 1; }
 .toolbar-divider {
   width: 1px;
   height: 28px;
-  background: rgba(0,0,0,0.08);
+  background: rgba(148,163,184,0.18);
   margin: 0 var(--space-3);
   flex-shrink: 0;
 }
@@ -200,19 +205,20 @@ function setTool(id) {
   border-radius: var(--radius-full);
   background: transparent;
   border: 1px solid transparent;
-  color: #4a4a5a;
+  color: #475569;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 .tool-btn:hover {
-  background: #f8f9fa;
-  color: #1a1a2e;
+  background: rgba(255,255,255,0.92);
+  color: #0f172a;
+  border-color: rgba(148,163,184,0.12);
 }
 .tool-btn.active {
-  background: #6c47ff;
+  background: linear-gradient(135deg, #6c47ff, #4f46e5);
   color: #fff;
-  box-shadow: 0 2px 6px rgba(108, 71, 255, 0.2);
+  box-shadow: 0 10px 24px rgba(108, 71, 255, 0.24);
 }
 .tool-label {
   font-size: 13px;
@@ -222,9 +228,9 @@ function setTool(id) {
 .zoom-display {
   font-size: 13px;
   font-weight: 700;
-  color: #4a4a5a;
-  background: #f8f9fa;
-  border: 1px solid rgba(0,0,0,0.08);
+  color: #334155;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(148,163,184,0.18);
   border-radius: var(--radius-full);
   padding: 6px 14px;
   cursor: pointer;
@@ -232,5 +238,20 @@ function setTool(id) {
   text-align: center;
   transition: all 0.2s ease;
 }
-.zoom-display:hover { color: #1a1a2e; background: #fff; border-color: rgba(0,0,0,0.15); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.zoom-display:hover { color: #0f172a; background: #fff; border-color: rgba(91,33,182,0.16); box-shadow: 0 8px 20px rgba(15,23,42,0.06); }
+
+@media (max-width: 780px) {
+  .editor-toolbar {
+    padding: 8px 12px;
+    height: auto;
+  }
+
+  .toolbar-group {
+    padding: 4px;
+  }
+
+  .tool-label {
+    display: none;
+  }
+}
 </style>
