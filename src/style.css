@@ -541,3 +541,11 @@ button, input, select, textarea {
 }
 
 
+.verification-banner { background: #fef3c7; border-bottom: 1px solid #fde68a; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #92400e; z-index: 11; position: sticky; top: 0; }
+.verification-actions { display: flex; gap: 8px; }
+.auth-email-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.auth-error-msg { color: var(--color-danger); font-size: 13px; text-align: center; }
+.auth-divider { display: flex; align-items: center; text-align: center; margin: 0 0 24px; color: var(--color-text-muted); font-size: 12px; }
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--color-border); }
+.auth-divider::before { margin-right: 12px; }
+.auth-divider::after { margin-left: 12px; }

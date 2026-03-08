@@ -22,10 +22,17 @@ const activeCategory = ref('all')
 const activeRail = ref('home')
 const confirmDeleteId = ref(null)
 const authMode = ref('signin')
+const authEmail = ref('')
+const authPassword = ref('')
+const authError = ref('')
+const authLoading = ref(false)
+
 const currentUser = computed(() => {
   if (authStore.user) {
     return {
       authTypeLabel: authStore.user.displayName || authStore.user.email || 'Current User',
+      emailVerified: authStore.user.emailVerified,
+      email: authStore.user.email,
     }
   }
   return null
@@ -157,10 +164,67 @@ function slideCount(project) {
 
 function setAuthMode(mode) {
   authMode.value = mode
+  authError.value = ''
+  authEmail.value = ''
+  authPassword.value = ''
+}
+
+async function continueWithEmail() {
+  if (!authEmail.value || !authPassword.value) {
+    authError.value = 'Please enter both email and password.'
+    return
+  }
+  authLoading.value = true
+  authError.value = ''
+  try {
+    if (authMode.value === 'signin') {
+      await authStore.loginWithEmail(authEmail.value, authPassword.value)
+    } else {
+      await authStore.signUpWithEmail(authEmail.value, authPassword.value)
+    }
+    showAuthModal.value = false
+  } catch (error) {
+    console.error('Email Auth Error:', error)
+    if (error.code === 'auth/email-already-in-use') {
+      authError.value = 'This email is already in use. Try signing in instead.'
+    } else if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      authError.value = 'Invalid email or password.'
+    } else if (error.code === 'auth/weak-password') {
+      authError.value = 'Password should be at least 6 characters.'
+    } else {
+      authError.value = 'An error occurred. Please try again.'
+    }
+  } finally {
+    authLoading.value = false
+  }
+}
+
+const isResending = ref(false)
+async function handleResendVerification() {
+  isResending.value = true
+  try {
+    await authStore.resendVerification()
+    alert('Verification email sent! Please check your inbox.')
+  } catch (e) {
+    console.error(e)
+    alert('Failed to send verification email. Please wait a moment and try again.')
+  } finally {
+    isResending.value = false
+  }
+}
+
+async function handleCheckVerification() {
+  await authStore.reloadUser()
+  if (currentUser.value?.emailVerified) {
+    alert('Thank you! Your email has been verified.')
+  } else {
+    alert('Email not verified yet. Please check your inbox or resend the email.')
+  }
 }
 
 async function continueWithProvider(provider) {
   try {
+    authError.value = ''
     if (provider.id === 'google') {
       await authStore.loginWithGoogle()
     } else if (provider.id === 'microsoft') {
@@ -243,6 +307,17 @@ function setRailSection(section) {
     </aside>
 
     <main class="market-main">
+      <!-- Unverified Email Banner -->
+      <div v-if="currentUser && !currentUser.emailVerified" class="verification-banner">
+        <span>Please verify your email address (<strong>{{ currentUser.email }}</strong>) to secure your account and unlock all features.</span>
+        <div class="verification-actions">
+          <button class="btn btn-primary btn-sm" @click="handleCheckVerification">I've verified my email</button>
+          <button class="btn btn-secondary btn-sm" @click="handleResendVerification" :disabled="isResending">
+            {{ isResending ? 'Sending...' : 'Resend Email' }}
+          </button>
+        </div>
+      </div>
+
       <!-- 1) Templates View -->
       <template v-if="activeRail === 'templates'">
         <section id="home-anchor" class="hero templates-hero">
@@ -422,6 +497,25 @@ function setRailSection(section) {
           </button>
         </div>
 
+        <form @submit.prevent="continueWithEmail" class="auth-email-form">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" v-model="authEmail" class="input" placeholder="you@example.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" v-model="authPassword" class="input" placeholder="••••••••" required minlength="6" />
+          </div>
+          <div v-if="authError" class="auth-error-msg">{{ authError }}</div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; height: 42px;" :disabled="authLoading">
+            {{ authLoading ? 'Loading...' : (authMode === 'signin' ? 'Sign In with Email' : 'Sign Up with Email') }}
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span>or continue with</span>
+        </div>
+
         <div class="auth-provider-list">
           <button
             v-for="provider in authProviders"
@@ -430,7 +524,7 @@ function setRailSection(section) {
             type="button"
             @click="continueWithProvider(provider)"
           >
-            <span class="provider-name">{{ authMode === 'signin' ? 'Sign in' : 'Sign up' }} with {{ provider.label }}</span>
+            <span class="provider-name">{{ provider.label }}</span>
             <span class="provider-description">{{ provider.description }}</span>
           </button>
         </div>

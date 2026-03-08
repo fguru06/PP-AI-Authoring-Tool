@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { auth, db, googleProvider, microsoftProvider, signInWithPopup, signOut, onAuthStateChanged } from '@/firebase'
+import { auth, db, googleProvider, microsoftProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from '@/firebase'
 import { doc, setDoc } from 'firebase/firestore'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -55,6 +55,43 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithEmail(email, password) {
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      user.value = result.user
+      return result.user
+    } catch (error) {
+      console.error("Email Sign-In Error:", error)
+      throw error
+    }
+  }
+
+  async function signUpWithEmail(email, password) {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password)
+      user.value = result.user
+      // Send verification right away
+      await sendEmailVerification(result.user)
+      return result.user
+    } catch (error) {
+      console.error("Email Sign-Up Error:", error)
+      throw error
+    }
+  }
+
+  async function resendVerification() {
+    if (user.value) {
+      await sendEmailVerification(user.value)
+    }
+  }
+
+  async function reloadUser() {
+    if (auth.currentUser) {
+      await auth.currentUser.reload()
+      user.value = auth.currentUser
+    }
+  }
+
   async function logout() {
     try {
       await signOut(auth)
@@ -69,6 +106,10 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthReady,
     loginWithGoogle,
     loginWithMicrosoft,
+    loginWithEmail,
+    signUpWithEmail,
+    resendVerification,
+    reloadUser,
     logout
   }
 })
