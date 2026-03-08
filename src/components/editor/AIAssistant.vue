@@ -384,28 +384,46 @@ async function applyTranslation() {
 }
 
 const imageTopic = ref('')
+const isImageGenerating = ref(false)
 
 async function generateAiImage() {
   if (!imageTopic.value.trim()) return
+  isImageGenerating.value = true
   result.value = "Optimizing prompt..."
-  
-  let finalPrompt = imageTopic.value
-  const enhanced = await aiStore.generateImagePrompt(imageTopic.value)
-  if (enhanced) {
-    finalPrompt = enhanced.replace(/```(json)?\n?/g, '').trim()
+
+  try {
+    let finalPrompt = imageTopic.value
+    const enhanced = await aiStore.generateImagePrompt(imageTopic.value)
+    if (enhanced) {
+      finalPrompt = enhanced.replace(/```(json)?\n?/g, '').trim()
+    }
+
+    result.value = "Painting image... this takes about 10-20 seconds. Please wait."
+
+    // Create Pollinations URL (free AI image generation, no API key needed)
+    // Use slightly smaller dimensions for faster generation and cache-busting seed
+    const seed = Math.floor(Math.random() * 1000000)
+    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=600&height=400&nologo=true&seed=${seed}`
+
+    // Preload image before adding to canvas so the loading spinner stays active
+    await new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = resolve
+      img.onerror = reject
+      img.src = imgUrl
+    })
+
+    projectStore.addElement(editorStore.projectId, editorStore.currentSlideId, 'image', {
+      x: 60, y: 150, width: 420, height: 280, // matches 600x400 aspect ratio
+      content: { src: imgUrl, objectFit: 'cover' }
+    })
+
+    result.value = "Image added to slide!"
+  } catch (error) {
+    result.value = "Failed to generate image. Try a different prompt."
+  } finally {
+    isImageGenerating.value = false
   }
-  
-  result.value = `Fetching image for: ${finalPrompt}`
-  
-  // Create Pollinations URL (free AI image generation, no API key needed)
-  const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=800&height=600&nologo=true`
-  
-  projectStore.addElement(editorStore.projectId, editorStore.currentSlideId, 'image', {
-    x: 60, y: 150, width: 400, height: 300,
-    content: { src: imgUrl, objectFit: 'cover' }
-  })
-  
-  result.value = "Image added to slide!"
 }
 
 async function improveSelectedText() {
@@ -813,9 +831,9 @@ async function runFreePrompt() {
           <label class="form-label">Image Description</label>
           <textarea v-model="imageTopic" class="textarea" style="min-height:100px" placeholder="Describe the image (e.g. 'A futuristic city skyline at sunset in a vibrant retro style')" />
         </div>
-        <button class="btn btn-primary w-full ai-generate-btn" :disabled="aiStore.isGenerating || !imageTopic" @click="generateAiImage">
-          <span v-if="aiStore.isGenerating" class="spinner" />
-          {{ aiStore.isGenerating ? 'Generating Image…' : 'Generate & Insert' }}
+<button class="btn btn-primary w-full ai-generate-btn" :disabled="isImageGenerating || aiStore.isGenerating || !imageTopic" @click="generateAiImage">
+            <span v-if="isImageGenerating || aiStore.isGenerating" class="spinner" />
+            {{ (isImageGenerating || aiStore.isGenerating) ? 'Generating Image…' : 'Generate & Insert' }}
         </button>
 
         <div v-if="result" class="improve-result-wrap" style="margin-top: var(--space-4)">
