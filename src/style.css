@@ -419,30 +419,268 @@ button, input, select, textarea {
   margin: 0 auto;
 }
 
-.challenge-banner {
-  background: linear-gradient(135deg, #a78bfa, #818cf8);
-  border-radius: 24px;
-  padding: 40px;
-  color: #fff;
+.home-container {
+  max-width: 1240px;
+}
+
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  gap: 32px;
+  min-height: 420px;
+  padding: 52px;
+  margin-bottom: 40px;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88)),
+    linear-gradient(135deg, #f5f3ff, #eff6ff 56%, #fff7ed);
+  box-shadow: 0 28px 80px rgba(91, 33, 182, 0.12);
+}
+
+.home-hero-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom right, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+
+.home-hero-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(10px);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.home-hero-glow-left {
+  top: -90px;
+  left: -40px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.28), rgba(251, 191, 36, 0));
+}
+
+.home-hero-glow-right {
+  right: 4%;
+  bottom: -100px;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.26), rgba(59, 130, 246, 0.04), rgba(139, 92, 246, 0));
+}
+
+.home-hero-copy,
+.home-hero-visual {
+  position: relative;
+  z-index: 1;
+}
+
+.home-hero-copy {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 40px;
-  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
 }
 
-.challenge-banner h2 {
-  font-size: 32px;
+.home-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(91, 33, 182, 0.08);
+  color: var(--color-primary);
+  font-size: 12px;
   font-weight: 700;
-  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.challenge-banner p {
-  font-size: 16px;
-  opacity: 0.9;
-  max-width: 500px;
-  margin: 0;
+.home-hero-title {
+  max-width: 11ch;
+  font-size: clamp(44px, 6vw, 68px);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+  color: #0f172a;
+}
+
+.home-hero-text {
+  max-width: 540px;
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.65;
+  color: #475569;
+}
+
+.home-hero-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.home-hero-secondary {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #0f172a;
+}
+
+.home-hero-secondary:hover {
+  background: #fff;
+  border-color: rgba(91, 33, 182, 0.2);
+}
+
+.home-hero-metrics {
+  display: flex;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.hero-metric-card {
+  min-width: 154px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.hero-metric-card strong {
+  display: block;
+  font-size: 20px;
+  line-height: 1;
+  color: #0f172a;
+}
+
+.hero-metric-card span {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.home-hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
+.hero-preview-card {
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.hero-preview-main {
+  width: min(100%, 420px);
+  padding: 22px;
+  transform: rotate(-4deg);
+}
+
+.preview-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(91, 33, 182, 0.12);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.preview-line {
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(91, 33, 182, 0.22), rgba(59, 130, 246, 0.08));
+}
+
+.preview-line-lg {
+  width: 78%;
+  height: 18px;
+  margin-top: 18px;
+}
+
+.preview-line-md {
+  width: 54%;
+  height: 12px;
+  margin-top: 14px;
+}
+
+.preview-line-sm {
+  width: 72%;
+  height: 10px;
+  margin-top: 14px;
+}
+
+.preview-dropzones {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.preview-dropzones span,
+.preview-pill-row span {
+  display: block;
+  border-radius: 16px;
+}
+
+.preview-dropzones span {
+  height: 120px;
+  background: linear-gradient(180deg, rgba(224, 231, 255, 0.95), rgba(248, 250, 252, 0.9));
+  border: 1px solid rgba(196, 181, 253, 0.45);
+}
+
+.hero-preview-floating {
+  position: absolute;
+  padding: 16px;
+}
+
+.hero-preview-quiz {
+  top: 8%;
+  right: -2%;
+  width: 180px;
+}
+
+.hero-preview-media {
+  left: 2%;
+  bottom: 2%;
+  width: 190px;
+}
+
+.preview-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.preview-pill-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.preview-pill-row span {
+  flex: 1;
+  height: 42px;
+  background: rgba(226, 232, 240, 0.95);
+}
+
+.preview-media {
+  height: 92px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), transparent 30%),
+    linear-gradient(135deg, #c4b5fd, #93c5fd);
 }
 
 .welcome-section {
@@ -700,5 +938,54 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+@media (max-width: 1100px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    padding: 36px;
+  }
+
+  .home-hero-visual {
+    min-height: 320px;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container,
+  .content-container {
+    padding: 20px;
+  }
+
+  .home-hero {
+    padding: 24px;
+    min-height: auto;
+    border-radius: 24px;
+  }
+
+  .home-hero-actions,
+  .home-hero-metrics,
+  .quick-actions {
+    flex-direction: column;
+  }
+
+  .hero-preview-main,
+  .hero-preview-quiz,
+  .hero-preview-media {
+    width: 100%;
+    max-width: none;
+  }
+
+  .hero-preview-quiz,
+  .hero-preview-media {
+    position: static;
+    margin-top: 14px;
+  }
+
+  .home-hero-visual {
+    display: block;
+    min-height: auto;
+  }
 }
 

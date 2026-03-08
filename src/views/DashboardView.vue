@@ -399,11 +399,57 @@ function setRailSection(section) {
         <!-- Home Specific -->
         <template v-if="activeRail === 'home'">
           <div class="home-container">
-            <div class="challenge-banner">
-              <h2>Drag, drop... and win!</h2>
-              <p>Put your new interactivity to the test by creating your own drag-and-drop activity.</p>
-              <button class="btn btn-primary btn-sm" style="background:#111;color:#fff;">Join the challenge</button>
-            </div>
+            <section class="home-hero">
+              <div class="home-hero-pattern"></div>
+              <div class="home-hero-glow home-hero-glow-left"></div>
+              <div class="home-hero-glow home-hero-glow-right"></div>
+
+              <div class="home-hero-copy">
+                <span class="home-hero-kicker">Featured challenge</span>
+                <h1 class="home-hero-title">Build interactions that feel alive.</h1>
+                <p class="home-hero-text">
+                  Design drag-and-drop lessons, branching slides, and quick knowledge checks with a workspace that feels built for fast iteration.
+                </p>
+                <div class="home-hero-actions">
+                  <button class="btn btn-primary btn-lg" @click="openNewModal">Start a new course</button>
+                  <button class="btn home-hero-secondary" @click="setRailSection('templates')">Browse templates</button>
+                </div>
+                <div class="home-hero-metrics">
+                  <div class="hero-metric-card">
+                    <strong>{{ visibleProjects.length || 0 }}</strong>
+                    <span>projects in motion</span>
+                  </div>
+                  <div class="hero-metric-card">
+                    <strong>{{ currentUser ? 'Ready' : 'Guest' }}</strong>
+                    <span>{{ currentUser ? 'workspace synced' : 'sign in to sync' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="home-hero-visual" aria-hidden="true">
+                <div class="hero-preview-card hero-preview-main">
+                  <span class="preview-badge">Drag and drop</span>
+                  <div class="preview-line preview-line-lg"></div>
+                  <div class="preview-line preview-line-md"></div>
+                  <div class="preview-dropzones">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+                <div class="hero-preview-card hero-preview-floating hero-preview-quiz">
+                  <span class="preview-dot"></span>
+                  <div class="preview-line preview-line-sm"></div>
+                  <div class="preview-pill-row">
+                    <span></span><span></span><span></span>
+                  </div>
+                </div>
+                <div class="hero-preview-card hero-preview-floating hero-preview-media">
+                  <div class="preview-media"></div>
+                  <div class="preview-line preview-line-sm"></div>
+                </div>
+              </div>
+            </section>
             
             <div class="welcome-section">
               <h2 class="welcome-title">
