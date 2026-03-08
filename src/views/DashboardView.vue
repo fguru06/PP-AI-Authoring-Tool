@@ -243,125 +243,158 @@ function setRailSection(section) {
     </aside>
 
     <main class="market-main">
-      <section id="home-anchor" class="hero">
-        <div class="hero-top">
-          <div v-if="currentUser" class="hero-user">
-            <span class="user-chip">{{ currentUser.authTypeLabel }}</span>
-            <button class="btn btn-ghost btn-sm" type="button" @click="signOut">Sign out</button>
-          </div>
-          <div v-else class="hero-user">
-            <button class="btn btn-secondary btn-sm" type="button" @click="openAuthModal('signin')">View Dashboard</button>
-            <button class="btn btn-primary btn-sm" type="button" @click="openAuthModal('signup')">Sign Up</button>
-          </div>
-          <button class="btn btn-secondary btn-sm" style="color:#d97706;border-color:rgba(217,119,6,0.3);background:#fffbeb;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            Upgrade to Premium
-          </button>
-          <div class="hero-actions">
-            <button class="btn btn-secondary btn-sm" @click="openImportModal">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Import
+      <!-- 1) Templates View -->
+      <template v-if="activeRail === 'templates'">
+        <section id="home-anchor" class="hero templates-hero">
+          <div class="hero-top">
+            <div v-if="currentUser" class="hero-user">
+              <span class="user-chip">{{ currentUser.authTypeLabel }}</span>
+              <button class="btn btn-ghost btn-sm" type="button" @click="signOut">Sign out</button>
+            </div>
+            <div v-else class="hero-user">
+              <button class="btn btn-secondary btn-sm" type="button" @click="openAuthModal('signin')">Log In</button>
+              <button class="btn btn-primary btn-sm" type="button" @click="openAuthModal('signup')">Sign Up</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="color:#d97706;border-color:rgba(217,119,6,0.3);background:#fffbeb;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Upgrade to Premium
             </button>
-            <button class="btn btn-primary btn-sm" @click="openNewModal">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              New Project
-            </button>
+            <div class="hero-actions">
+              <button class="btn btn-secondary btn-sm" @click="openImportModal">Import</button>
+            </div>
           </div>
-        </div>
 
-        <h1 class="hero-title">Choose how to create</h1>
-        <div class="hero-search">
-          <input v-model="searchQuery" class="search-input" placeholder="Describe what you're looking for" />
-          <button class="hero-search-btn" type="button" aria-label="Search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-          </button>
-        </div>
-      </section>
-
-      <section v-if="activeRail !== 'content'" id="templates-anchor" class="toolbar-row">
-        <div class="chip-list">
-          <button
-            class="chip"
-            :class="activeCategory === 'all' && 'active'"
-            @click="activeCategory = 'all'"
-            type="button"
-          >
-            All
-          </button>
-          <button
-            v-for="item in categories"
-            :key="item.value"
-            class="chip"
-            :class="activeCategory === item.value && 'active'"
-            @click="activeCategory = item.value"
-            type="button"
-          >
-            {{ item.label }}
-          </button>
-        </div>
-        <button class="btn btn-secondary btn-sm" style="border-radius: 99px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
-          Create quiz with AI
-        </button>
-      </section>
-
-      <section v-for="section in cardsBySection" v-if="activeRail !== 'content'" :key="section.title" class="template-section">
-        <h2 class="section-title">{{ section.title }}</h2>
-        <div class="cards-row">
-          <article
-            v-for="card in section.cards"
-            :key="card.id"
-            class="market-card"
-            :class="card.style"
-            @click="createFromTemplate(card)"
-          >
-            <div class="hover-overlay"></div>
-            <div class="action-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
+          <h1 class="hero-title">Choose how to create</h1>
+          <div class="hero-search">
+            <input v-model="searchQuery" class="search-input" placeholder="Describe what you're looking for" />
+            <button class="hero-search-btn" type="button" aria-label="Search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
               </svg>
-            </div>
-            <span class="card-type">{{ card.subtitle }}</span>
-            <h3 class="card-title">{{ card.title }}</h3>
-          </article>
-        </div>
-      </section>
-
-      <section id="projects-anchor" class="projects-section" v-if="activeRail !== 'templates' && currentUser && visibleProjects.length">
-        <div class="projects-head">
-          <h2 class="section-title">Your projects</h2>
-          <span class="count-pill">{{ visibleProjects.length }}</span>
-        </div>
-        <div class="project-grid">
-          <article
-            v-for="project in visibleProjects"
-            :key="project.id"
-            class="project-card"
-            @click="openProject(project.id)"
-          >
-            <div class="project-name">{{ project.name }}</div>
-            <p class="project-meta">{{ slideCount(project) }} slides · {{ formatDate(project.updatedAt) }}</p>
-            <div class="project-actions" @click.stop>
-              <button class="btn btn-ghost btn-sm" @click="duplicateProject(project.id)">Duplicate</button>
-              <button class="btn btn-ghost btn-sm" @click="deleteProject(project.id)">Delete</button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section id="projects-anchor" v-else-if="activeRail !== 'templates' && !currentUser" class="projects-section">
-        <div class="projects-lock-card">
-          <h2 class="section-title">Your dashboard</h2>
-          <p class="project-meta">Sign in for existing projects or sign up as a new user to unlock your dashboard.</p>
-          <div class="projects-lock-actions">
-            <button class="btn btn-secondary" type="button" @click="openAuthModal('signin')">Sign In</button>
-            <button class="btn btn-primary" type="button" @click="openAuthModal('signup')">Sign Up</button>
+            </button>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section id="templates-anchor" class="toolbar-row">
+          <div class="chip-list">
+            <button class="chip" :class="activeCategory === 'all' && 'active'" @click="activeCategory = 'all'" type="button">All</button>
+            <button v-for="item in categories" :key="item.value" class="chip" :class="activeCategory === item.value && 'active'" @click="activeCategory = item.value" type="button">{{ item.label }}</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" style="border-radius: 99px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+            Create quiz with AI
+          </button>
+        </section>
+
+        <section v-for="section in cardsBySection" :key="section.title" class="template-section">
+          <h2 class="section-title">{{ section.title }}</h2>
+          <div class="cards-row">
+            <article v-for="card in section.cards" :key="card.id" class="market-card" :class="card.style" @click="createFromTemplate(card)">
+              <div class="hover-overlay"></div>
+              <div class="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div>
+              <span class="card-type">{{ card.subtitle }}</span>
+              <h3 class="card-title">{{ card.title }}</h3>
+            </article>
+          </div>
+        </section>
+      </template>
+
+      <!-- 2) Home & Content Shared Top Nav -->
+      <template v-if="activeRail === 'home' || activeRail === 'content'">
+        <header class="app-top-nav">
+          <div class="nav-search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input v-model="searchQuery" placeholder="Search templates and creations" />
+          </div>
+          <div class="nav-actions">
+            <button class="btn btn-secondary btn-sm" style="color:#d97706;border-color:rgba(217,119,6,0.3);background:#fffbeb;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Upgrade to Premium
+            </button>
+            <div v-if="currentUser" class="user-info-mini">
+              <span class="user-chip">{{ currentUser.authTypeLabel }}</span>
+              <button class="btn btn-primary btn-sm" @click="openNewModal">Create course</button>
+            </div>
+            <div v-else>
+              <button class="btn btn-secondary btn-sm" @click="openAuthModal('signin')">Sign In</button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Home Specific -->
+        <template v-if="activeRail === 'home'">
+          <div class="home-container">
+            <div class="challenge-banner">
+              <h2>Drag, drop... and win!</h2>
+              <p>Put your new interactivity to the test by creating your own drag-and-drop activity.</p>
+              <button class="btn btn-primary btn-sm" style="background:#111;color:#fff;">Join the challenge</button>
+            </div>
+            
+            <div class="welcome-section">
+              <h2 class="welcome-title">
+                Hi, {{ currentUser?.authTypeLabel.split(' ')[0] || 'Creator' }} 👋 What are you going to create today?
+              </h2>
+              <div class="quick-actions">
+                <button class="quick-btn" @click="openNewModal"><span class="q-icon" style="color:var(--color-primary);">+</span> Create scratch project</button>
+                <button class="quick-btn" @click="setRailSection('templates')"><span class="q-icon" style="color:var(--color-secondary);">🎮</span> Create a game</button>
+                <button class="quick-btn" @click="setRailSection('templates')"><span class="q-icon" style="color:var(--color-success);">📱</span> Create a presentation</button>
+              </div>
+            </div>
+
+            <section class="projects-section" style="padding-top:0;">
+              <div class="projects-head" style="justify-content:space-between;">
+                <h2 class="section-title">Pick up where you left off</h2>
+                <button class="btn btn-ghost btn-sm" @click="setRailSection('content')">Go to My Content ›</button>
+              </div>
+              <div class="project-grid" v-if="currentUser && visibleProjects.length">
+                <article v-for="project in visibleProjects.slice(0, 4)" :key="project.id" class="project-card" @click="openProject(project.id)">
+                  <div class="project-name">{{ project.name }}</div>
+                  <p class="project-meta">{{ slideCount(project) }} slides · {{ formatDate(project.updatedAt) }}</p>
+                  <div class="project-actions" @click.stop>
+                    <button class="btn btn-ghost btn-sm" @click="duplicateProject(project.id)">Duplicate</button>
+                  </div>
+                </article>
+              </div>
+              <div v-else-if="!currentUser" class="projects-lock-card">
+                <p>Sign in to see your recent projects.</p>
+              </div>
+              <div v-else class="projects-lock-card">
+                <p>You haven't created any projects yet. Start by creating a project from scratch or a template.</p>
+              </div>
+            </section>
+          </div>
+        </template>
+
+        <!-- Content Specific -->
+        <template v-if="activeRail === 'content'">
+          <div class="content-container">
+            <div class="content-header-row">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="content-icon">💿</div>
+                <h1 style="font-size:28px;font-weight:700;">My content</h1>
+              </div>
+            </div>
+            
+            <div class="projects-section" style="padding:0;">
+              <div class="project-grid" v-if="currentUser">
+                <!-- Create New Card inside grid -->
+                <article class="project-card create-new-card" @click="openNewModal">
+                  <div class="create-circle">+</div>
+                  <div class="create-text">Create new project</div>
+                </article>
+
+                <article v-for="project in visibleProjects" :key="project.id" class="project-card" @click="openProject(project.id)">
+                  <div class="project-name">{{ project.name }}</div>
+                  <p class="project-meta">{{ slideCount(project) }} slides · {{ formatDate(project.updatedAt) }}</p>
+                  <div class="project-actions" @click.stop>
+                    <button class="btn btn-ghost btn-sm" @click="duplicateProject(project.id)">Duplicate</button>
+                    <button class="btn btn-ghost btn-sm" @click="deleteProject(project.id)" style="color:var(--color-danger)">Delete</button>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </template>
+      </template>
     </main>
 
     <Modal v-if="showAuthModal" :title="authMode === 'signin' ? 'Sign In' : 'Sign Up'" size="md" @close="showAuthModal = false">
