@@ -258,22 +258,54 @@ button, input, select, textarea {
 [data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + 10px);
   left: 50%;
-  transform: translateX(-50%);
-  background: #0a0a12;
-  color: var(--color-text);
+  transform: translate(-50%, 4px);
+  background: rgba(15, 23, 42, 0.96);
+  color: #ffffff;
   font-size: var(--text-xs);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
+  font-weight: 600;
+  padding: 7px 10px;
+  border-radius: 10px;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
   z-index: 9999;
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
 }
-[data-tooltip]:hover::after { opacity: 1; }
+[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  width: 10px;
+  height: 10px;
+  background: rgba(15, 23, 42, 0.96);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  transform: translateX(-50%) rotate(45deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 9998;
+}
+[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+[data-tooltip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.rail-item[data-tooltip],
+.quick-btn[data-tooltip],
+.btn[data-tooltip],
+.project-card[data-tooltip] {
+  overflow: visible;
+}
 
 @media (max-width: 1024px) {
   :root {
@@ -438,6 +470,12 @@ button, input, select, textarea {
     linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88)),
     linear-gradient(135deg, #f5f3ff, #eff6ff 56%, #fff7ed);
   box-shadow: 0 28px 80px rgba(91, 33, 182, 0.12);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.home-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 34px 90px rgba(91, 33, 182, 0.14);
 }
 
 .home-hero-pattern {
@@ -548,6 +586,12 @@ button, input, select, textarea {
   background: rgba(255, 255, 255, 0.68);
   border: 1px solid rgba(226, 232, 240, 0.95);
   backdrop-filter: blur(8px);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.hero-metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
 }
 
 .hero-metric-card strong {
@@ -577,12 +621,18 @@ button, input, select, textarea {
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(14px);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease;
 }
 
 .hero-preview-main {
   width: min(100%, 420px);
   padding: 22px;
   transform: rotate(-4deg);
+}
+
+.home-hero:hover .hero-preview-main {
+  transform: rotate(-5deg) translateY(-4px);
+  box-shadow: 0 34px 74px rgba(15, 23, 42, 0.18);
 }
 
 .preview-badge {
@@ -649,10 +699,18 @@ button, input, select, textarea {
   width: 180px;
 }
 
+.home-hero:hover .hero-preview-quiz {
+  transform: translateY(-6px) rotate(2deg);
+}
+
 .hero-preview-media {
   left: 2%;
   bottom: 2%;
   width: 190px;
+}
+
+.home-hero:hover .hero-preview-media {
+  transform: translateY(4px) rotate(-2deg);
 }
 
 .preview-dot {
@@ -712,12 +770,28 @@ button, input, select, textarea {
   cursor: pointer;
   transition: all 0.2s ease;
   flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.72) 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform 420ms ease;
+  pointer-events: none;
 }
 
 .quick-btn:hover {
   border-color: var(--color-border-hover);
   box-shadow: var(--shadow-sm);
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.01);
+}
+
+.quick-btn:hover::before {
+  transform: translateX(120%);
 }
 
 .quick-btn .q-icon {

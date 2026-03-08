@@ -279,27 +279,27 @@ function setRailSection(section) {
     <aside class="left-rail">
       <div class="rail-logo">LF</div>
       <nav class="rail-nav">
-        <button class="rail-item" :class="activeRail === 'home' && 'active'" type="button" @click="setRailSection('home')">
+        <button class="rail-item" :class="activeRail === 'home' && 'active'" type="button" @click="setRailSection('home')" data-tooltip="Go to home">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           Home
         </button>
-        <button class="rail-item" :class="activeRail === 'content' && 'active'" type="button" @click="setRailSection('content')">
+        <button class="rail-item" :class="activeRail === 'content' && 'active'" type="button" @click="setRailSection('content')" data-tooltip="View your content">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><path d="M7 7h10"></path><path d="M7 12h10"></path><path d="M7 17h10"></path></svg>
           Content
         </button>
-        <button class="rail-item" :class="activeRail === 'templates' && 'active'" type="button" @click="setRailSection('templates')">
+        <button class="rail-item" :class="activeRail === 'templates' && 'active'" type="button" @click="setRailSection('templates')" data-tooltip="Browse templates">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>
           Templates
         </button>
-        <button class="rail-item" type="button" @click="setRailSection('community')">
+        <button class="rail-item" type="button" @click="setRailSection('community')" data-tooltip="Community coming soon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           Community
         </button>
-        <button class="rail-item" type="button" @click="setRailSection('activity')">
+        <button class="rail-item" type="button" @click="setRailSection('activity')" data-tooltip="Activity coming soon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
           Activity
         </button>
-        <button class="rail-item" type="button" @click="setRailSection('brand')">
+        <button class="rail-item" type="button" @click="setRailSection('brand')" data-tooltip="Brand kit coming soon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           Brand kit
         </button>
@@ -336,7 +336,7 @@ function setRailSection(section) {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 Upgrade to Premium
               </button>
-              <button class="btn g-outline-btn" @click="openImportModal">Import</button>
+              <button class="btn g-outline-btn" @click="openImportModal" data-tooltip="Import a project">Import</button>
             </div>
           </div>
 
@@ -411,8 +411,8 @@ function setRailSection(section) {
                   Design drag-and-drop lessons, branching slides, and quick knowledge checks with a workspace that feels built for fast iteration.
                 </p>
                 <div class="home-hero-actions">
-                  <button class="btn btn-primary btn-lg" @click="openNewModal">Start a new course</button>
-                  <button class="btn home-hero-secondary" @click="setRailSection('templates')">Browse templates</button>
+                  <button class="btn btn-primary btn-lg" @click="openNewModal" data-tooltip="Create a new project from scratch">Start a new course</button>
+                  <button class="btn home-hero-secondary" @click="setRailSection('templates')" data-tooltip="Open the templates library">Browse templates</button>
                 </div>
                 <div class="home-hero-metrics">
                   <div class="hero-metric-card">
@@ -456,9 +456,9 @@ function setRailSection(section) {
                 Hi, {{ currentUser?.authTypeLabel.split(' ')[0] || 'Creator' }} 👋 What are you going to create today?
               </h2>
               <div class="quick-actions">
-                <button class="quick-btn" @click="openNewModal"><span class="q-icon" style="color:var(--color-primary);">+</span> Create scratch project</button>
-                <button class="quick-btn" @click="setRailSection('templates')"><span class="q-icon" style="color:var(--color-secondary);">🎮</span> Create a game</button>
-                <button class="quick-btn" @click="setRailSection('templates')"><span class="q-icon" style="color:var(--color-success);">📱</span> Create a presentation</button>
+                <button class="quick-btn" @click="openNewModal" data-tooltip="Start with a blank project"><span class="q-icon" style="color:var(--color-primary);">+</span> Create scratch project</button>
+                <button class="quick-btn" @click="setRailSection('templates')" data-tooltip="Use a game template"><span class="q-icon" style="color:var(--color-secondary);">🎮</span> Create a game</button>
+                <button class="quick-btn" @click="setRailSection('templates')" data-tooltip="Use a presentation template"><span class="q-icon" style="color:var(--color-success);">📱</span> Create a presentation</button>
               </div>
             </div>
 
@@ -468,7 +468,7 @@ function setRailSection(section) {
                 <button class="btn btn-ghost btn-sm" @click="setRailSection('content')">Go to My Content ›</button>
               </div>
               <div class="project-grid" v-if="currentUser && visibleProjects.length">
-                <article v-for="project in visibleProjects.slice(0, 4)" :key="project.id" class="project-card" @click="openProject(project.id)">
+                <article v-for="project in visibleProjects.slice(0, 4)" :key="project.id" class="project-card" @click="openProject(project.id)" :data-tooltip="`Open ${project.name}`">
                   <div class="project-name">{{ project.name }}</div>
                   <p class="project-meta">{{ slideCount(project) }} slides · {{ formatDate(project.updatedAt) }}</p>
                   <div class="project-actions" @click.stop>
@@ -499,12 +499,12 @@ function setRailSection(section) {
             <div class="projects-section" style="padding:0;">
               <div class="project-grid" v-if="currentUser">
                 <!-- Create New Card inside grid -->
-                <article class="project-card create-new-card" @click="openNewModal">
+                <article class="project-card create-new-card" @click="openNewModal" data-tooltip="Create a project">
                   <div class="create-circle">+</div>
                   <div class="create-text">Create new project</div>
                 </article>
 
-                <article v-for="project in visibleProjects" :key="project.id" class="project-card" @click="openProject(project.id)">
+                <article v-for="project in visibleProjects" :key="project.id" class="project-card" @click="openProject(project.id)" :data-tooltip="`Open ${project.name}`">
                   <div class="project-name">{{ project.name }}</div>
                   <p class="project-meta">{{ slideCount(project) }} slides · {{ formatDate(project.updatedAt) }}</p>
                   <div class="project-actions" @click.stop>
@@ -755,6 +755,22 @@ function setRailSection(section) {
   align-items: center;
   gap: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.rail-item::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(91, 33, 182, 0), rgba(91, 33, 182, 0.58), rgba(91, 33, 182, 0));
+  opacity: 0;
+  transform: scaleX(0.55);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .rail-item svg {
@@ -767,10 +783,17 @@ function setRailSection(section) {
 .rail-item:hover {
   background: #f1f5f9;
   color: #0f172a;
+  transform: translateY(-1px);
 }
 
 .rail-item:hover svg {
   transform: translateY(-2px);
+}
+
+.rail-item:hover::after,
+.rail-item.active::after {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .rail-item.active {
@@ -1134,9 +1157,28 @@ function setRailSection(section) {
 }
 
 .project-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px) scale(1.01);
   border-color: #cbd5e1;
   box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+}
+
+.templates-hero,
+.toolbar-row-g,
+.template-section,
+.home-container,
+.content-container {
+  animation: dashboard-rise 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dashboard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .project-name {

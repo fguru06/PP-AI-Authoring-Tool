@@ -225,7 +225,7 @@ function isAuthoringOptionActive(id) {
     <!-- Top Bar -->
     <header class="editor-topbar">
       <div class="topbar-left">
-        <button class="btn btn-ghost btn-sm back-btn" @click="goBack">
+        <button class="btn btn-ghost btn-sm back-btn" @click="goBack" data-tooltip="Return to dashboard">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Dashboard
         </button>
@@ -247,19 +247,20 @@ function isAuthoringOptionActive(id) {
         <button
           :class="['btn btn-ghost btn-sm', editorStore.showAIPanel && 'active-btn']"
           @click="editorStore.showAIPanel = !editorStore.showAIPanel; editorStore.setRightPanel('ai')"
+          data-tooltip="Open AI assistant"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           AI
         </button>
-        <button class="btn btn-ghost btn-sm" @click="editorStore.showThemeManager = !editorStore.showThemeManager; editorStore.setRightPanel('theme')">
+        <button class="btn btn-ghost btn-sm" @click="editorStore.showThemeManager = !editorStore.showThemeManager; editorStore.setRightPanel('theme')" data-tooltip="Open theme controls">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
           Theme
         </button>
-        <button class="btn btn-secondary btn-sm" @click="preview">
+        <button class="btn btn-secondary btn-sm" @click="preview" data-tooltip="Preview your project">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Preview
         </button>
-        <button class="btn btn-primary btn-sm" @click="editorStore.showExportModal = true">
+        <button class="btn btn-primary btn-sm" @click="editorStore.showExportModal = true" data-tooltip="Export or publish">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export
         </button>
@@ -277,6 +278,7 @@ function isAuthoringOptionActive(id) {
           :key="item.id"
           :class="['rail-option', isAuthoringOptionActive(item.id) && 'active']"
           @click="handleAuthoringOption(item.id)"
+          :data-tooltip="item.label"
         >
           <span v-if="item.id === 'text'" class="rail-icon">T</span>
           <span v-else-if="item.id === 'resources'" class="rail-icon">
@@ -308,7 +310,9 @@ function isAuthoringOptionActive(id) {
       </aside>
 
       <!-- Left: Slides -->
-      <SlidePanel v-if="editorStore.showSlidePanel" />
+      <Transition name="side-panel-slide">
+        <SlidePanel v-if="editorStore.showSlidePanel" />
+      </Transition>
 
       <!-- Center: Canvas -->
       <EditorCanvas />
@@ -327,6 +331,7 @@ function isAuthoringOptionActive(id) {
             :key="t.id"
             :class="['panel-tab', editorStore.rightPanelTab === t.id && 'active']"
             @click="editorStore.setRightPanel(t.id)"
+            :data-tooltip="`Open ${t.label}`"
           >
             <span class="tab-icon">{{ t.icon }}</span>
             <span class="tab-label">{{ t.label }}</span>
@@ -335,10 +340,14 @@ function isAuthoringOptionActive(id) {
 
         <!-- Panel Content -->
         <div class="panel-content">
-          <PropertiesPanel v-if="editorStore.rightPanelTab === 'properties'" />
-          <LayerPanel v-else-if="editorStore.rightPanelTab === 'layers'" />
-          <AIAssistant v-else-if="editorStore.rightPanelTab === 'ai'" />
-          <ThemeManager v-else-if="editorStore.rightPanelTab === 'theme'" />
+          <Transition name="editor-panel-switch" mode="out-in">
+            <div :key="rightPanelContent" class="panel-content-view">
+              <PropertiesPanel v-if="editorStore.rightPanelTab === 'properties'" />
+              <LayerPanel v-else-if="editorStore.rightPanelTab === 'layers'" />
+              <AIAssistant v-else-if="editorStore.rightPanelTab === 'ai'" />
+              <ThemeManager v-else-if="editorStore.rightPanelTab === 'theme'" />
+            </div>
+          </Transition>
         </div>
       </aside>
     </div>
@@ -494,6 +503,7 @@ function isAuthoringOptionActive(id) {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255,255,255,0.08);
   color: #fff;
+  transform: translateY(-2px);
 }
 
 .rail-option.active {
@@ -546,11 +556,34 @@ function isAuthoringOptionActive(id) {
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
 }
-.panel-tab:hover { color: #0f172a; background: rgba(255,255,255,0.6); }
+.panel-tab:hover { color: #0f172a; background: rgba(255,255,255,0.6); transform: translateY(-1px); }
 .panel-tab.active { color: #6c47ff; border-bottom-color: #6c47ff; background: rgba(255,255,255,0.9);}
 .tab-icon { font-size: 16px; line-height: 1; }
 .tab-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .panel-content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.panel-content-view { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+
+.side-panel-slide-enter-active,
+.side-panel-slide-leave-active {
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.side-panel-slide-enter-from,
+.side-panel-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+
+.editor-panel-switch-enter-active,
+.editor-panel-switch-leave-active {
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.editor-panel-switch-enter-from,
+.editor-panel-switch-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
 
 /* Not found */
 .editor-not-found {
