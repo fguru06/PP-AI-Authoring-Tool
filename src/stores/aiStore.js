@@ -247,8 +247,8 @@ Keep it concise (30-60 seconds when read aloud). Write naturally as if speaking.
   }
 
   async function generateImagePrompt(topic) {
-    const prompt = `Generate a detailed image prompt for an eLearning slide about: "${topic}". 
-Make it suitable for AI image generation (DALL-E style). Be specific about style, composition, and educational relevance.`
+    const prompt = `Generate a detailed image prompt for a corporate or educational slide about: "${topic}". 
+Make it suitable for AI image generation (like Midjourney or DALL-E). Ensure the prompt specifically asks for a "highly detailed photorealistic image, realistic lighting, photographic style, no text". Be specific about composition and relevance.`
     return generate(prompt, { type: 'imagePrompt', topic })
   }
 
@@ -309,7 +309,7 @@ Make it suitable for AI image generation (DALL-E style). Be specific about style
       voiceover: "Welcome to this lesson. In this section, we'll explore the key concepts that will help you understand the topic better. Pay close attention to the main points as we go through them one by one.",
       translation: `[Translated text for: ${topic}]\n\nLas mejores prÃ¡cticas garantizan la seguridad, la eficiencia y el rendimiento a largo plazo en este dominio.`,
       improve: `Here is a clearer, more engaging version of your text:\n\nUnderstanding the core components helps you diagnose and solve complex problems much more effectively.`,
-      imagePrompt: `A high-quality, professional educational illustration about: "${topic}". Clean modern vector art style, bright colors, visually engaging, masterpiece.`,
+      imagePrompt: `A high-quality, professional, photorealistic image about: "${topic}". 8k resolution, highly detailed, realistic lighting, photographic style, suitable for a corporate presentation.`,
       default: "This is a sample AI-generated response. Configure your OpenAI API key in the AI settings panel to get real responses.",
     }
     isGenerating.value = true

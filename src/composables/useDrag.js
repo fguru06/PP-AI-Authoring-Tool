@@ -155,6 +155,13 @@ export function useKeyboardShortcuts(handlers) {
   function onKeyDown(e) {
     const ctrl = e.ctrlKey || e.metaKey
     const key = e.key.toLowerCase()
+    const tag = e.target.tagName.toLowerCase()
+    const isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable
+
+    // Allow default browser behavior for text inputs
+    if (isInput && (ctrl && ['c', 'v', 'x', 'a', 'z', 'y'].includes(key))) {
+      return
+    }
 
     if (ctrl && key === 'z' && !e.shiftKey) { e.preventDefault(); handlers.undo?.() }
     else if (ctrl && (key === 'y' || (key === 'z' && e.shiftKey))) { e.preventDefault(); handlers.redo?.() }
@@ -164,8 +171,7 @@ export function useKeyboardShortcuts(handlers) {
     else if (ctrl && key === 'd') { e.preventDefault(); handlers.duplicate?.() }
     else if (ctrl && key === 'a') { e.preventDefault(); handlers.selectAll?.() }
     else if (key === 'delete' || key === 'backspace') {
-      const tag = e.target.tagName.toLowerCase()
-      if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
+      if (!isInput) {
         e.preventDefault(); handlers.delete?.()
       }
     }
