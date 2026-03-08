@@ -317,6 +317,13 @@ function setRailSection(section) {
             :class="card.style"
             @click="createFromTemplate(card)"
           >
+            <div class="hover-overlay"></div>
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
             <span class="card-type">{{ card.subtitle }}</span>
             <h3 class="card-title">{{ card.title }}</h3>
           </article>
@@ -521,35 +528,35 @@ function setRailSection(section) {
 .market-shell {
   height: 100vh;
   display: flex;
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
 .left-rail {
   width: 90px;
-  background: #1e1e24; /* Dark modern look */
-  color: #fff;
+  background: #ffffff; /* Modern Genially-like minimal white */
+  color: #0f172a;
   padding: var(--space-4) var(--space-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  border-right: none;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  border-right: 1px solid var(--color-border);
+  box-shadow: 2px 0 10px rgba(0,0,0,0.02);
   z-index: 10;
 }
 
 .rail-logo {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border-radius: var(--radius-lg);
+  background: var(--color-primary);
   color: #fff;
   display: grid;
   place-items: center;
   font-weight: 800;
   font-size: 18px;
   margin: 0 auto;
-  box-shadow: 0 4px 10px rgba(108, 71, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(91, 33, 182, 0.2);
 }
 
 .rail-nav {
@@ -562,11 +569,11 @@ function setRailSection(section) {
 .rail-item {
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-md);
+  color: #64748b;
+  border-radius: var(--radius-lg);
   padding: 12px 6px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   text-align: center;
   display: flex;
@@ -579,29 +586,26 @@ function setRailSection(section) {
 .rail-item svg {
   width: 22px;
   height: 22px;
-  opacity: 0.8;
+  opacity: 0.9;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .rail-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 .rail-item:hover svg {
-  opacity: 1;
-  transform: scale(1.1);
+  transform: translateY(-2px);
 }
 
 .rail-item.active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  font-weight: 600;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .rail-item.active svg {
-  opacity: 1;
-  color: #fff;
+  color: var(--color-primary);
 }
 
 .market-main {
@@ -611,18 +615,21 @@ function setRailSection(section) {
 }
 
 .hero {
-  background: linear-gradient(
-    110deg,
-    #fbc2eb 0%,
-    #fbcca2 50%,
-    #ffeed2 100%
-  );
+  background: #ffffff;
   padding: var(--space-8) var(--space-8) var(--space-8);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: inset 0 -4px 12px rgba(0,0,0,0.02);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  color: #1a1a2e;
+  position: relative;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top right, rgba(91, 33, 182, 0.05), transparent 40%),
+              radial-gradient(circle at top left, rgba(234, 179, 8, 0.05), transparent 40%);
+  pointer-events: none;
 }
 
 .hero-top {
@@ -631,6 +638,8 @@ function setRailSection(section) {
   justify-content: flex-end;
   gap: var(--space-3);
   margin-bottom: var(--space-6);
+  position: relative;
+  z-index: 2;
 }
 
 .hero-user {
@@ -642,12 +651,12 @@ function setRailSection(section) {
 
 .user-chip {
   border-radius: var(--radius-full);
-  background: rgba(255,255,255,0.6);
-  border: 1px solid rgba(0,0,0,0.1);
-  color: #333;
-  font-weight: 500;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-weight: 600;
   font-size: var(--text-xs);
-  padding: 4px 10px;
+  padding: 6px 12px;
 }
 
 .hero-actions {
@@ -657,13 +666,14 @@ function setRailSection(section) {
 
 .hero-title {
   text-align: center;
-  font-size: clamp(38px, 6vw, 64px);
+  font-size: clamp(34px, 5vw, 56px);
   font-weight: 800;
-  color: #2b2b40;
+  color: var(--color-text);
   line-height: 1.1;
-  letter-spacing: -0.03em;
-  margin-bottom: var(--space-4);
-  text-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-5);
+  position: relative;
+  z-index: 2;
 }
 
 .hero-search {
@@ -671,19 +681,22 @@ function setRailSection(section) {
   width: 100%;
   max-width: 680px;
   background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  padding: 4px 6px;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  padding: 6px 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
 }
 
 .hero-search:focus-within {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(91, 33, 182, 0.12);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
 .search-input {
@@ -698,7 +711,7 @@ function setRailSection(section) {
 }
 
 .search-input::placeholder {
-  color: #aaa;
+  color: #94a3b8;
 }
 
 .hero-search-btn {
@@ -706,21 +719,22 @@ function setRailSection(section) {
   height: 44px;
   border-radius: 50%;
   border: none;
-  background: #2b2b40;
+  background: var(--color-primary);
   color: #fff;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hero-search-btn:hover {
-  background: #111;
+  background: var(--color-primary-hover);
+  transform: scale(1.05);
 }
 
 .toolbar-row {
-  background: rgba(255,255,255,0.9);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.85);
+  border-bottom: 1px solid var(--color-border);
   padding: 16px var(--space-8);
   display: flex;
   justify-content: space-between;
@@ -730,7 +744,6 @@ function setRailSection(section) {
   top: 0;
   z-index: 5;
   backdrop-filter: blur(12px);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
 }
 
 .chip-list {
@@ -740,28 +753,27 @@ function setRailSection(section) {
 }
 
 .chip {
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--color-border);
   background: #ffffff;
-  color: #4a4a5a;
+  color: #475569;
   border-radius: var(--radius-full);
   padding: 8px 18px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chip:hover {
-  border-color: rgba(0,0,0,0.2);
-  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .chip.active {
-  background: #2b2b40;
-  border-color: #2b2b40;
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(43,43,64,0.2);
+  background: #ffffff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .template-section,
@@ -770,10 +782,11 @@ function setRailSection(section) {
 }
 
 .section-title {
-  font-size: 34px;
+  font-size: 24px;
+  font-weight: 700;
   margin-bottom: var(--space-4);
   color: var(--color-text);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .cards-row {
@@ -783,38 +796,110 @@ function setRailSection(section) {
 }
 
 .market-card {
+  position: relative;
   min-height: 180px;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 20px;
   cursor: pointer;
   color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-  transition: all 0.25s ease;
-  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+}
+
+.market-card::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 44px; height: 44px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>') no-repeat center / 20px;
+}
+
+.market-card::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 44px; height: 44px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9;
+}
+
+.market-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+
+.market-card:hover::before, .market-card:hover::after {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.market-card:hover .card-title, .market-card:hover .card-type {
+  transform: translateY(4px);
+  opacity: 0.9;
 }
 
 .market-card::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(0deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 60%);
+  background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 60%);
   z-index: 1;
+}
+
+.market-card .hover-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.market-card:hover .hover-overlay {
+  opacity: 1;
+}
+
+.market-card .action-icon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 44px; height: 44px;
+  background: rgba(255,255,255,1);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.market-card:hover .action-icon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .card-type,
 .card-title {
   position: relative;
-  z-index: 2;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.market-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  z-index: 3;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .card-type {
@@ -832,14 +917,14 @@ function setRailSection(section) {
   font-weight: 700;
 }
 
-.bg-a { background: linear-gradient(130deg, var(--color-primary), var(--color-primary-hover)); }
-.bg-b { background: linear-gradient(130deg, var(--color-danger), var(--color-warning)); }
-.bg-c { background: linear-gradient(130deg, var(--color-surface), var(--color-surface-overlay)); }
-.bg-d { background: linear-gradient(130deg, var(--color-text-dim), var(--color-border)); }
-.bg-e { background: linear-gradient(130deg, var(--color-warning), var(--color-secondary)); color: var(--color-bg); }
-.bg-f { background: linear-gradient(130deg, var(--color-surface-raised), var(--color-surface)); }
-.bg-g { background: linear-gradient(130deg, var(--color-secondary), var(--color-primary)); }
-.bg-h { background: linear-gradient(130deg, var(--color-bg), var(--color-surface)); }
+.bg-a { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); }
+.bg-b { background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%); }
+.bg-c { background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); }
+.bg-d { background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%); }
+.bg-e { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
+.bg-f { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); }
+.bg-g { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
+.bg-h { background: linear-gradient(135deg, #06b6d4 0%, #0369a1 100%); }
 
 .projects-head {
   display: flex;
@@ -864,18 +949,20 @@ function setRailSection(section) {
 }
 
 .project-card {
-  background: color-mix(in srgb, var(--color-surface-raised) 88%, #ffffff 12%);
+  position: relative;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
 }
 
 .project-card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
 }
 
 .project-name {
