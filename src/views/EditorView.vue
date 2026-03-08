@@ -225,7 +225,7 @@ function isAuthoringOptionActive(id) {
     <!-- Top Bar -->
     <header class="editor-topbar">
       <div class="topbar-left">
-        <button class="btn btn-ghost btn-sm back-btn" @click="goBack" data-tooltip="Return to dashboard">
+        <button class="btn btn-ghost btn-sm back-btn" @click="goBack" data-tooltip="Return to dashboard" data-tooltip-position="bottom">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Dashboard
         </button>
@@ -248,19 +248,20 @@ function isAuthoringOptionActive(id) {
           :class="['btn btn-ghost btn-sm', editorStore.showAIPanel && 'active-btn']"
           @click="editorStore.showAIPanel = !editorStore.showAIPanel; editorStore.setRightPanel('ai')"
           data-tooltip="Open AI assistant"
+          data-tooltip-position="bottom"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           AI
         </button>
-        <button class="btn btn-ghost btn-sm" @click="editorStore.showThemeManager = !editorStore.showThemeManager; editorStore.setRightPanel('theme')" data-tooltip="Open theme controls">
+        <button class="btn btn-ghost btn-sm" @click="editorStore.showThemeManager = !editorStore.showThemeManager; editorStore.setRightPanel('theme')" data-tooltip="Open theme controls" data-tooltip-position="bottom">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
           Theme
         </button>
-        <button class="btn btn-secondary btn-sm" @click="preview" data-tooltip="Preview your project">
+        <button class="btn btn-secondary btn-sm" @click="preview" data-tooltip="Preview your project" data-tooltip-position="bottom">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Preview
         </button>
-        <button class="btn btn-primary btn-sm" @click="editorStore.showExportModal = true" data-tooltip="Export or publish">
+        <button class="btn btn-primary btn-sm" @click="editorStore.showExportModal = true" data-tooltip="Export or publish" data-tooltip-position="bottom">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export
         </button>
@@ -279,6 +280,7 @@ function isAuthoringOptionActive(id) {
           :class="['rail-option', isAuthoringOptionActive(item.id) && 'active']"
           @click="handleAuthoringOption(item.id)"
           :data-tooltip="item.label"
+          data-tooltip-position="right"
         >
           <span v-if="item.id === 'text'" class="rail-icon">T</span>
           <span v-else-if="item.id === 'resources'" class="rail-icon">
@@ -332,6 +334,7 @@ function isAuthoringOptionActive(id) {
             :class="['panel-tab', editorStore.rightPanelTab === t.id && 'active']"
             @click="editorStore.setRightPanel(t.id)"
             :data-tooltip="`Open ${t.label}`"
+            data-tooltip-position="bottom"
           >
             <span class="tab-icon">{{ t.icon }}</span>
             <span class="tab-label">{{ t.label }}</span>
@@ -449,7 +452,11 @@ function isAuthoringOptionActive(id) {
   flex: 1;
   justify-content: flex-end;
 }
-.active-btn { background: #6c47ff !important; color: #fff !important; }
+.active-btn {
+  background: linear-gradient(135deg, #6c47ff, #4f46e5) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 24px rgba(108, 71, 255, 0.24);
+}
 
 /* Body layout */
 .editor-body {
@@ -507,10 +514,10 @@ function isAuthoringOptionActive(id) {
 }
 
 .rail-option.active {
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.28), rgba(59, 130, 246, 0.18));
-  border-color: rgba(196, 181, 253, 0.26);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.18), rgba(59, 130, 246, 0.1));
+  border-color: rgba(196, 181, 253, 0.4);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(76, 29, 149, 0.26);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 22px rgba(76, 29, 149, 0.18);
 }
 
 .rail-option.active .rail-icon {
@@ -557,7 +564,12 @@ function isAuthoringOptionActive(id) {
   margin-bottom: -1px;
 }
 .panel-tab:hover { color: #0f172a; background: rgba(255,255,255,0.6); transform: translateY(-1px); }
-.panel-tab.active { color: #6c47ff; border-bottom-color: #6c47ff; background: rgba(255,255,255,0.9);}
+.panel-tab.active {
+  color: #6c47ff;
+  border-bottom-color: #6c47ff;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,255,0.92));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+}
 .tab-icon { font-size: 16px; line-height: 1; }
 .tab-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
 .panel-content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }

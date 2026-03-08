@@ -254,7 +254,12 @@ button, input, select, textarea {
 .divider { height: 1px; background: var(--color-border-subtle); margin: var(--space-2) 0; }
 
 /* -------- Tooltip -------- */
-[data-tooltip] { position: relative; }
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]:hover {
+  z-index: 10001;
+}
 [data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
@@ -298,6 +303,45 @@ button, input, select, textarea {
 [data-tooltip]:hover::before {
   opacity: 1;
   transform: translateX(-50%) rotate(45deg);
+}
+
+[data-tooltip-position='bottom']::after {
+  top: calc(100% + 10px);
+  bottom: auto;
+  transform: translate(-50%, -4px);
+}
+
+[data-tooltip-position='bottom']::before {
+  top: calc(100% + 4px);
+  bottom: auto;
+  transform: translateX(-50%) rotate(225deg);
+}
+
+[data-tooltip-position='bottom']:hover::after {
+  transform: translate(-50%, 0);
+}
+
+[data-tooltip-position='bottom']:hover::before {
+  transform: translateX(-50%) rotate(225deg);
+}
+
+[data-tooltip-position='right']::after {
+  left: calc(100% + 14px);
+  top: 50%;
+  bottom: auto;
+  transform: translate(-4px, -50%);
+}
+
+[data-tooltip-position='right']::before {
+  display: none;
+}
+
+[data-tooltip-position='right']:hover::after {
+  transform: translate(0, -50%);
+}
+
+[data-tooltip-position='right']:hover::before {
+  transform: none;
 }
 
 .rail-item[data-tooltip],

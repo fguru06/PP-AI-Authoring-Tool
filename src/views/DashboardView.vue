@@ -279,27 +279,27 @@ function setRailSection(section) {
     <aside class="left-rail">
       <div class="rail-logo">LF</div>
       <nav class="rail-nav">
-        <button class="rail-item" :class="activeRail === 'home' && 'active'" type="button" @click="setRailSection('home')" data-tooltip="Go to home">
+        <button class="rail-item" :class="activeRail === 'home' && 'active'" type="button" @click="setRailSection('home')" data-tooltip="Go to home" data-tooltip-position="right">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           Home
         </button>
-        <button class="rail-item" :class="activeRail === 'content' && 'active'" type="button" @click="setRailSection('content')" data-tooltip="View your content">
+        <button class="rail-item" :class="activeRail === 'content' && 'active'" type="button" @click="setRailSection('content')" data-tooltip="View your content" data-tooltip-position="right">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><path d="M7 7h10"></path><path d="M7 12h10"></path><path d="M7 17h10"></path></svg>
           Content
         </button>
-        <button class="rail-item" :class="activeRail === 'templates' && 'active'" type="button" @click="setRailSection('templates')" data-tooltip="Browse templates">
+        <button class="rail-item" :class="activeRail === 'templates' && 'active'" type="button" @click="setRailSection('templates')" data-tooltip="Browse templates" data-tooltip-position="right">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>
           Templates
         </button>
-        <button class="rail-item" type="button" @click="setRailSection('community')" data-tooltip="Community coming soon">
+        <button class="rail-item" type="button" @click="setRailSection('community')" data-tooltip="Community coming soon" data-tooltip-position="right">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           Community
         </button>
-        <button class="rail-item" type="button" @click="setRailSection('activity')" data-tooltip="Activity coming soon">
+        <button class="rail-item" type="button" @click="setRailSection('activity')" data-tooltip="Activity coming soon" data-tooltip-position="right">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
           Activity
         </button>
-        <button class="rail-item" type="button" @click="setRailSection('brand')" data-tooltip="Brand kit coming soon">
+        <button class="rail-item" type="button" @click="setRailSection('brand')" data-tooltip="Brand kit coming soon" data-tooltip-position="right">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           Brand kit
         </button>
@@ -741,11 +741,11 @@ function setRailSection(section) {
 }
 
 .rail-item {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: #64748b;
-  border-radius: var(--radius-lg);
-  padding: 12px 6px;
+  border-radius: 18px;
+  padding: 12px 8px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -756,21 +756,11 @@ function setRailSection(section) {
   gap: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .rail-item::after {
-  content: '';
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 6px;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(91, 33, 182, 0), rgba(91, 33, 182, 0.58), rgba(91, 33, 182, 0));
-  opacity: 0;
-  transform: scaleX(0.55);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  content: none;
 }
 
 .rail-item svg {
@@ -781,7 +771,8 @@ function setRailSection(section) {
 }
 
 .rail-item:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
+  border-color: #e2e8f0;
   color: #0f172a;
   transform: translateY(-1px);
 }
@@ -790,19 +781,16 @@ function setRailSection(section) {
   transform: translateY(-2px);
 }
 
-.rail-item:hover::after,
-.rail-item.active::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
 .rail-item.active {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: linear-gradient(180deg, rgba(245, 243, 255, 0.98), rgba(238, 242, 255, 0.96));
+  border-color: #c4b5fd;
+  box-shadow: 0 10px 24px rgba(91, 33, 182, 0.08);
+  color: #4c1d95;
 }
 
 .rail-item.active svg {
-  color: var(--color-primary);
+  color: #5b21b6;
+  transform: none;
 }
 
 .market-main {
