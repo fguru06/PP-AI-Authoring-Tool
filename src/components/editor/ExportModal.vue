@@ -32,97 +32,1172 @@ function exportJSON() {
   a.href = url
   a.download = `${exportFileName.value || 'project'}.learnforge.json`
   a.click()
-  URL.revokeObjectURL(url)
-  exportStatus.value = 'success'
-  setTimeout(() => exportStatus.value = '', 3000)
+function sanitizeExportName(name, fallback = 'presentation') {
+  const value = String(name || fallback).trim()
+  return value.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim() || fallback
 }
 
-function buildHTMLSlide(slide, theme) {
-  const bg = slide.backgroundType === 'gradient' && slide.backgroundGradient
-    ? slide.backgroundGradient
-    : slide.backgroundType === 'image' && slide.backgroundImage
-      ? `url('${slide.backgroundImage}') center/cover`
-      : slide.background || '#fff'
+function buildRuntimeCSS(theme, settings) {
+  return `
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  min-height: 100vh;
+  font-family: ${theme?.fontFamily || 'Inter, sans-serif'};
+  background:
+    radial-gradient(circle at 18% 18%, rgba(108, 71, 255, 0.24), transparent 22%),
+    radial-gradient(circle at 82% 72%, rgba(0, 201, 167, 0.18), transparent 28%),
+    linear-gradient(180deg, #08101f 0%, #050916 62%, #02050b 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.lf-shell {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.lf-shell::before,
+.lf-shell::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(24px);
+  pointer-events: none;
+}
+.lf-shell::before {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  left: -80px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.18), transparent 72%);
+}
+.lf-shell::after {
+  width: 520px;
+  height: 520px;
+  right: -160px;
+  bottom: -200px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.22), transparent 72%);
+}
+.lf-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,0.65), transparent 88%);
+  pointer-events: none;
+}
+.lf-stage-shell {
+  position: relative;
+  z-index: 1;
+  padding: 18px;
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 30px 80px rgba(0,0,0,.34);
+}
+.lf-stage-shell::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+.presentation {
+  position: relative;
+  width: 960px;
+  height: 540px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 90px rgba(0,0,0,.5);
+  transform-origin: center center;
+}
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  color: ${theme?.textColor || '#1a1a2e'};
+}
+.slide.active { display: block; }
+.lf-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(255,255,255,.72);
+  font-size: 16px;
+  background: rgba(255,255,255,.06);
+}
+.lf-el {
+  position: absolute;
+  box-sizing: border-box;
+}
+.lf-el-content {
+  width: 100%;
+  height: 100%;
+}
+.lf-text {
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.lf-image,
+.lf-video,
+.lf-video iframe,
+.lf-video video {
+  width: 100%;
+  height: 100%;
+}
+.lf-video {
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.lf-button-wrap,
+.lf-divider-wrap,
+.lf-audio-wrap {
+  width: 100%;
+  height: 100%;
+}
+.lf-button {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.lf-button:hover { transform: translateY(-1px); }
+.lf-button:focus-visible,
+.lf-hotspot-btn:focus-visible,
+.nav-btn:focus-visible,
+.dot:focus-visible,
+.lf-quiz-submit:focus-visible,
+.lf-quiz-reset:focus-visible,
+.lf-quiz-option:focus-visible {
+  outline: 2px solid rgba(255,255,255,.9);
+  outline-offset: 2px;
+}
+.lf-hotspot-btn {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .26);
+}
+.lf-hotspot-popup {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  transform: translateX(-50%) translateY(6px);
+  min-width: 220px;
+  max-width: 300px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, .08);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, .22);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+  z-index: 20;
+  overflow: hidden;
+}
+.lf-hotspot-popup.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.lf-hotspot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, .08);
+}
+.lf-hotspot-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+.lf-hotspot-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lf-hotspot-body {
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.lf-audio-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.lf-audio-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.lf-audio-label {
+  min-width: 0;
+  flex: 0 0 auto;
+  max-width: 180px;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lf-audio-player {
+  flex: 1;
+  min-width: 120px;
+}
+.lf-divider {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: none;
+}
+.lf-quiz {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 14px;
+  overflow: auto;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+}
+.lf-quiz-question {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.lf-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lf-quiz-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #dbe3ef;
+  background: rgba(255,255,255,.92);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.lf-quiz-option:hover:not([disabled]) {
+  transform: translateY(-1px);
+}
+.lf-quiz-option.selected {
+  background: rgba(108, 71, 255, .12);
+}
+.lf-quiz-option.correct {
+  border-color: #16a34a;
+  background: rgba(22, 163, 74, .10);
+  color: #14532d;
+}
+.lf-quiz-option.wrong {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, .10);
+  color: #991b1b;
+}
+.lf-quiz-option[disabled] {
+  cursor: default;
+}
+.lf-quiz-letter {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+.lf-quiz-text {
+  flex: 1;
+}
+.lf-quiz-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+.lf-quiz-submit,
+.lf-quiz-reset {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lf-quiz-submit[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.lf-quiz-feedback {
+  display: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.lf-quiz-feedback.show { display: block; }
+.lf-quiz-feedback.correct {
+  background: rgba(22, 163, 74, .12);
+  color: #166534;
+}
+.lf-quiz-feedback.wrong {
+  background: rgba(239, 68, 68, .12);
+  color: #991b1b;
+}
+.nav {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: ${settings?.showNavControls === false ? 'none' : 'flex'};
+  align-items: center;
+  gap: 12px;
+  z-index: 5;
+}
+.nav-btn {
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+  min-width: 92px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+  transition: background .18s ease, opacity .18s ease, transform .18s ease;
+}
+.nav-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,.18);
+  transform: translateY(-1px);
+}
+.nav-btn:disabled {
+  opacity: .3;
+  cursor: default;
+}
+.nav-counter {
+  min-width: 74px;
+  text-align: center;
+  color: rgba(255,255,255,.76);
+  font-size: 13px;
+}
+.dot-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 74px;
+  transform: translateX(-50%);
+  display: ${settings?.showNavControls === false ? 'none' : 'flex'};
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+}
+.dot {
+  width: 10px;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: rgba(255,255,255,.28);
+  cursor: pointer;
+  transition: width .18s ease, background .18s ease;
+}
+.dot.active {
+  width: 30px;
+  background: #ffffff;
+}
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: ${theme?.primaryColor || '#6c47ff'};
+  transition: width .22s ease;
+  display: ${settings?.showProgress === false ? 'none' : 'block'};
+  z-index: 6;
+}
+@media (max-width: 900px) {
+  .lf-stage-shell {
+    padding: 10px;
+    border-radius: 20px;
+  }
+  .dot-nav { bottom: 66px; }
+  .nav { bottom: 12px; }
+  .nav-btn {
+    min-width: 78px;
+    padding: 9px 14px;
+  }
+}
+`
+}
 
-  const sortedEls = [...(slide.elements || [])].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
+function buildRuntimeJS() {
+  return `
+(function () {
+  var dataNode = document.getElementById('lf-data');
+  if (!dataNode) return;
 
-  const elHTML = sortedEls.filter(e => e.visible !== false).map(el => {
-    const baseStyle = `position:absolute;left:${el.x / 960 * 100}%;top:${el.y / 540 * 100}%;width:${el.width / 960 * 100}%;height:${el.height / 540 * 100}%;opacity:${el.opacity ?? 1};transform:rotate(${el.rotation || 0}deg);z-index:${el.zIndex || 1};box-sizing:border-box;`
+  var project;
+  try {
+    project = JSON.parse(dataNode.textContent || '{}');
+  } catch (error) {
+    console.error('LearnForge export could not read project data.', error);
+    var mountError = document.getElementById('presentation');
+    if (mountError) mountError.innerHTML = '<div class="lf-empty">Unable to load exported slides.</div>';
+    return;
+  }
 
-    if (['text', 'heading'].includes(el.type)) {
-      const c = el.content || {}
-      return `<div style="${baseStyle}font-size:${c.fontSize || 16}px;font-family:${c.fontFamily || 'inherit'};font-weight:${c.fontWeight || 'normal'};font-style:${c.fontStyle || 'normal'};text-decoration:${c.textDecoration || 'none'};text-align:${c.textAlign || 'left'};color:${c.color || '#000'};line-height:${c.lineHeight || 1.5};white-space:pre-wrap;overflow:hidden;">${el.content?.text || ''}</div>`
-    }
-    if (el.type === 'image') {
-      const c = el.content || {}
-      return `<img src="${c.src || ''}" alt="${c.alt || ''}" style="${baseStyle}object-fit:${c.objectFit || 'cover'};border-radius:${c.borderRadius || 0}px;" />`
-    }
-    if (el.type === 'shape') {
-      const c = el.content || {}
-      let extra = ''
-      if (c.shapeType === 'circle') extra = 'border-radius:50%;'
-      return `<div style="${baseStyle}background:${c.fillColor || '#6c47ff'};border:${c.borderWidth || 0}px solid ${c.borderColor || 'transparent'};border-radius:${c.shapeType === 'circle' ? '50%' : (c.borderRadius || 0) + 'px'};"></div>`
-    }
-    if (el.type === 'button') {
-      const c = el.content || {}
-      const variants = {
-        primary: `background:${theme?.primaryColor || '#6c47ff'};color:#fff;`,
-        secondary: `background:#f0f0f0;color:#333;`,
-        outline: `background:transparent;border:2px solid ${theme?.primaryColor || '#6c47ff'};color:${theme?.primaryColor || '#6c47ff'};`,
-        ghost: `background:transparent;color:${theme?.primaryColor || '#6c47ff'};`,
-        danger: `background:#ef4444;color:#fff;`,
+  var slides = Array.isArray(project.slides)
+    ? project.slides.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); })
+    : [];
+  var settings = project.settings || {};
+  var theme = project.theme || {};
+  var state = { current: 0, timer: null };
+  var slideLookup = {};
+  var slideNodes = [];
+
+  var mount = document.getElementById('presentation');
+  var counter = document.getElementById('counter');
+  var progress = document.getElementById('progress');
+  var prevBtn = document.getElementById('prev-btn');
+  var nextBtn = document.getElementById('next-btn');
+  var dotNav = document.getElementById('dot-nav');
+
+  slides.forEach(function (slide, index) {
+    slideLookup[slide.id] = index;
+    var node = renderSlide(slide, index);
+    mount.appendChild(node);
+    slideNodes.push(node);
+  });
+
+  if (!slideNodes.length) {
+    mount.innerHTML = '<div class="lf-empty">This export has no slides.</div>';
+    if (counter) counter.textContent = '0 / 0';
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    return;
+  }
+
+  renderDots();
+
+  if (prevBtn) prevBtn.addEventListener('click', function () { prev(); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { next(); });
+
+  if (settings.allowKeyboardNav !== false) {
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === ' ') {
+        event.preventDefault();
+        next();
       }
-      const varStyle = variants[c.variant || 'primary'] || variants.primary
-      return `<button style="${baseStyle}${varStyle}border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;">${c.label || 'Button'}</button>`
-    }
-    if (el.type === 'hotspot') {
-      const c = el.content || {}
-      return `<div class="hotspot-el" style="${baseStyle}background:${c.bgColor || '#6c47ff'};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold;cursor:pointer;" 
-        onclick="document.getElementById('popup-${el.id}').style.display='block'">${c.icon || '?'}
-        <div id="popup-${el.id}" style="display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #ddd;border-radius:8px;padding:16px;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:9999;color:#333;">
-          <b style="display:block;margin-bottom:8px;">${c.popupTitle || ''}</b>
-          <span>${c.popupContent || ''}</span>
-          <button onclick="event.stopPropagation();document.getElementById('popup-${el.id}').style.display='none'" style="margin-top:10px;padding:4px 10px;border:none;background:#6c47ff;color:#fff;border-radius:4px;cursor:pointer;">Close</button>
-        </div>
-      </div>`
-    }
-    if (el.type === 'video') {
-      const c = el.content || {}
-      const src = c.src || ''
-      // Detect YouTube/Vimeo
-      if (src.includes('youtube') || src.includes('youtu.be')) {
-        const id = src.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]
-        return `<iframe src="https://www.youtube.com/embed/${id}" style="${baseStyle}" frameborder="0" allowfullscreen></iframe>`
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        prev();
       }
-      return `<video src="${src}" poster="${c.poster || ''}" style="${baseStyle}object-fit:cover;" ${c.autoplay ? 'autoplay' : ''} ${c.controls !== false ? 'controls' : ''} ${c.loop ? 'loop' : ''}></video>`
-    }
-    if (el.type === 'audio') {
-      const c = el.content || {}
-      return `<div style="${baseStyle}display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.05);border-radius:8px;padding:0 12px;">
-        <span style="color:#333;font-size:13px;">${c.label || 'Audio'}</span>
-        <audio src="${c.src || ''}" ${c.autoplay ? 'autoplay' : ''} controls style="flex:1;height:32px;"></audio>
-      </div>`
-    }
-    if (el.type === 'quiz') {
-      const c = el.content || {}
-      const opts = (c.options || []).map((o, i) =>
-        `<label class="quiz-opt" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;border:1px solid #ddd;cursor:pointer;margin-bottom:6px;">
-          <input type="radio" name="quiz-${el.id}" value="${i}" onchange="checkAnswer(this,${c.correctIndex || 0},'quiz-fb-${el.id}','${(c.explanation || '').replace(/'/g, "\\'")}')"> ${o}
-        </label>`
-      ).join('')
-      return `<div style="${baseStyle}background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:auto;">
-        <p style="font-size:17px;font-weight:600;color:#1a1a2e;margin-bottom:14px;">${c.question || ''}</p>
-        ${opts}
-        <div id="quiz-fb-${el.id}" style="font-size:13px;margin-top:10px;padding:8px 12px;border-radius:6px;display:none;"></div>
-      </div>`
-    }
-    if (el.type === 'divider') {
-      const c = el.content || {}
-      return `<hr style="${baseStyle}border:none;border-top:${c.thickness || 2}px solid ${c.color || '#e2e8f0'};" />`
-    }
-    return ''
-  }).join('\n    ')
+    });
+  }
 
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('.lf-hotspot-btn') || event.target.closest('.lf-hotspot-popup')) return;
+    document.querySelectorAll('.lf-hotspot-popup.is-open').forEach(function (popup) {
+      popup.classList.remove('is-open');
+    });
+  });
+
+  window.addEventListener('resize', resizeStage);
+  resizeStage();
+  show(0);
+
+  function resizeStage() {
+    var stage = document.getElementById('presentation');
+    if (!stage) return;
+    var scale = Math.min(window.innerWidth / 960, window.innerHeight / 540, 1.5);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+
+  function renderDots() {
+    if (!dotNav) return;
+    dotNav.innerHTML = '';
+    slideNodes.forEach(function (_, index) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'dot';
+      button.setAttribute('aria-label', 'Go to slide ' + (index + 1));
+      button.addEventListener('click', function () { show(index); });
+      dotNav.appendChild(button);
+    });
+  }
+
+  function next() {
+    if (state.current < slideNodes.length - 1) {
+      show(state.current + 1);
+      return;
+    }
+    if (settings.loop) show(0);
+  }
+
+  function prev() {
+    if (state.current > 0) {
+      show(state.current - 1);
+      return;
+    }
+    if (settings.loop) show(slideNodes.length - 1);
+  }
+
+  function show(index) {
+    if (!slideNodes.length) return;
+    if (index < 0) index = 0;
+    if (index > slideNodes.length - 1) index = slideNodes.length - 1;
+
+    slideNodes.forEach(function (node, nodeIndex) {
+      node.classList.toggle('active', nodeIndex === index);
+    });
+
+    state.current = index;
+    if (counter) counter.textContent = (index + 1) + ' / ' + slideNodes.length;
+    if (progress) progress.style.width = (((index + 1) / slideNodes.length) * 100) + '%';
+    if (prevBtn) prevBtn.disabled = !settings.loop && index === 0;
+    if (nextBtn) nextBtn.disabled = !settings.loop && index === slideNodes.length - 1;
+
+    Array.prototype.forEach.call(dotNav ? dotNav.children : [], function (dot, dotIndex) {
+      dot.classList.toggle('active', dotIndex === index);
+    });
+
+    closeHotspots();
+    pauseInactiveMedia(index);
+    triggerLoadInteractions(slideNodes[index]);
+    scheduleAutoAdvance();
+  }
+
+  function scheduleAutoAdvance() {
+    window.clearTimeout(state.timer);
+    if (!settings.autoPlay) return;
+    var currentSlide = slides[state.current] || {};
+    var duration = Number(currentSlide.duration || 0);
+    if (duration > 0) {
+      state.timer = window.setTimeout(function () { next(); }, duration * 1000);
+    }
+  }
+
+  function closeHotspots() {
+    document.querySelectorAll('.lf-hotspot-popup.is-open').forEach(function (popup) {
+      popup.classList.remove('is-open');
+    });
+  }
+
+  function pauseInactiveMedia(activeIndex) {
+    slideNodes.forEach(function (slideNode, index) {
+      if (index === activeIndex) return;
+      slideNode.querySelectorAll('audio, video').forEach(function (media) {
+        try { media.pause(); } catch (error) {}
+      });
+    });
+  }
+
+  function resolveSlideTarget(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return null;
+    if (/^\d+$/.test(raw)) {
+      var numericIndex = Number(raw) - 1;
+      if (numericIndex >= 0 && numericIndex < slideNodes.length) return numericIndex;
+    }
+    if (Object.prototype.hasOwnProperty.call(slideLookup, raw)) {
+      return slideLookup[raw];
+    }
+    var lower = raw.toLowerCase();
+    var titleIndex = slides.findIndex(function (slide) {
+      return String(slide.title || '').trim().toLowerCase() === lower;
+    });
+    return titleIndex >= 0 ? titleIndex : null;
+  }
+
+  function runAction(action, value, sourceNode) {
+    if (!action || action === 'none') return;
+    if (action === 'navigate') {
+      var targetIndex = resolveSlideTarget(value);
+      if (targetIndex !== null) show(targetIndex);
+      return;
+    }
+    if (action === 'openUrl' || action === 'link') {
+      var url = String(value || '').trim();
+      if (url) window.open(url, '_blank', 'noopener');
+      return;
+    }
+    if (action === 'showPopup') {
+      var popup = sourceNode ? sourceNode.querySelector('.lf-hotspot-popup') : null;
+      if (popup) {
+        popup.classList.toggle('is-open');
+      } else if (value) {
+        window.alert(String(value));
+      }
+      return;
+    }
+    if (action === 'playAudio') {
+      var audioTarget = resolveMediaNode('audio', value, sourceNode);
+      if (audioTarget) audioTarget.play().catch(function () {});
+      return;
+    }
+    if (action === 'pauseVideo') {
+      var videoTarget = resolveMediaNode('video', value, sourceNode);
+      if (videoTarget) videoTarget.pause();
+      return;
+    }
+    if (action === 'submit') {
+      var scope = sourceNode ? sourceNode.closest('.slide') : slideNodes[state.current];
+      var submitButton = scope ? scope.querySelector('.lf-quiz-submit') : null;
+      if (submitButton) submitButton.click();
+    }
+  }
+
+  function resolveMediaNode(tagName, value, sourceNode) {
+    var scope = sourceNode ? sourceNode.closest('.slide') : slideNodes[state.current];
+    if (!scope) return null;
+    var target = String(value || '').trim();
+    if (target) {
+      var byElement = scope.querySelector('[data-el-id="' + cssEscape(target) + '"] ' + tagName);
+      if (byElement) return byElement;
+    }
+    return scope.querySelector(tagName);
+  }
+
+  function triggerLoadInteractions(slideNode) {
+    if (!slideNode) return;
+    slideNode.querySelectorAll('.lf-el').forEach(function (node) {
+      var interactions = node._lfLoadInteractions || [];
+      interactions.forEach(function (interaction) {
+        runAction(interaction.action, interaction.value, node);
+      });
+    });
+  }
+
+  function buildElementBox(el, interactive) {
+    var node = document.createElement('div');
+    node.className = 'lf-el lf-el-' + (el.type || 'unknown');
+    node.dataset.elId = el.id || '';
+    node.dataset.elType = el.type || '';
+    node.style.left = (el.x || 0) + 'px';
+    node.style.top = (el.y || 0) + 'px';
+    node.style.width = (el.width || 0) + 'px';
+    node.style.height = (el.height || 0) + 'px';
+    node.style.opacity = el.opacity == null ? '1' : String(el.opacity);
+    node.style.zIndex = String(el.zIndex || 1);
+    node.style.transform = el.rotation ? 'rotate(' + el.rotation + 'deg)' : '';
+    node.style.pointerEvents = interactive ? 'auto' : 'none';
+    return node;
+  }
+
+  function renderSlide(slide, slideIndex) {
+    var node = document.createElement('section');
+    node.className = 'slide';
+    node.dataset.slideId = slide.id || '';
+    node.dataset.slideIndex = String(slideIndex);
+    applySlideBackground(node, slide);
+
+    var elements = Array.isArray(slide.elements)
+      ? slide.elements.slice().sort(function (a, b) { return (a.zIndex || 0) - (b.zIndex || 0); })
+      : [];
+
+    elements.forEach(function (el) {
+      if (el && el.visible !== false) {
+        node.appendChild(renderElement(el));
+      }
+    });
+
+    return node;
+  }
+
+  function applySlideBackground(node, slide) {
+    if (slide.backgroundType === 'gradient' && slide.backgroundGradient) {
+      node.style.background = slide.backgroundGradient;
+      return;
+    }
+    if (slide.backgroundType === 'image' && slide.backgroundImage) {
+      node.style.backgroundImage = 'url("' + String(slide.backgroundImage).replace(/"/g, '&quot;') + '")';
+      node.style.backgroundSize = 'cover';
+      node.style.backgroundPosition = 'center';
+      return;
+    }
+    node.style.background = slide.background || theme.bgColor || '#ffffff';
+  }
+
+  function renderElement(el) {
+    var interactions = Array.isArray(el.interactions) ? el.interactions.filter(Boolean) : [];
+    var interactive = ['button', 'hotspot', 'quiz', 'video', 'audio'].includes(el.type) || interactions.length > 0;
+    var wrapper = buildElementBox(el, interactive);
+    var content = el.content || {};
+
+    if (el.type === 'text' || el.type === 'heading') {
+      var text = document.createElement('div');
+      text.className = 'lf-text';
+      text.textContent = content.text || '';
+      text.style.fontSize = (content.fontSize || (el.type === 'heading' ? 36 : 18)) + 'px';
+      text.style.fontFamily = content.fontFamily || theme.fontFamily || 'Inter, sans-serif';
+      text.style.fontWeight = String(content.fontWeight || (el.type === 'heading' ? '700' : '400'));
+      text.style.fontStyle = content.fontStyle || 'normal';
+      text.style.textDecoration = content.textDecoration || 'none';
+      text.style.textAlign = content.textAlign || 'left';
+      text.style.color = content.color || theme.textColor || '#1a1a2e';
+      text.style.lineHeight = String(content.lineHeight || (el.type === 'heading' ? 1.2 : 1.5));
+      text.style.letterSpacing = (content.letterSpacing || 0) + 'px';
+      text.style.textTransform = content.textTransform || 'none';
+      wrapper.appendChild(text);
+    } else if (el.type === 'image') {
+      var image = document.createElement('img');
+      image.className = 'lf-image';
+      image.src = content.src || '';
+      image.alt = content.alt || '';
+      image.style.objectFit = content.objectFit || 'cover';
+      image.style.borderRadius = (content.borderRadius || 0) + 'px';
+      image.style.border = (content.borderWidth || 0) + 'px solid ' + (content.borderColor || 'transparent');
+      wrapper.appendChild(image);
+    } else if (el.type === 'shape') {
+      wrapper.appendChild(renderShape(el));
+    } else if (el.type === 'button') {
+      var buttonWrap = document.createElement('div');
+      buttonWrap.className = 'lf-button-wrap';
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'lf-button';
+      button.textContent = content.label || 'Button';
+      button.style.fontSize = (content.fontSize || 15) + 'px';
+      button.style.fontWeight = String(content.fontWeight || 600);
+      button.style.fontFamily = content.fontFamily || theme.fontFamily || 'Inter, sans-serif';
+      button.style.letterSpacing = (content.letterSpacing || 0) + 'px';
+      button.style.borderRadius = (content.borderRadius == null ? 8 : content.borderRadius) + 'px';
+      applyButtonStyle(button, content, theme);
+      buttonWrap.appendChild(button);
+      wrapper.appendChild(buttonWrap);
+
+      if (content.action && content.action !== 'none') {
+        button.addEventListener('click', function (event) {
+          event.stopPropagation();
+          var action = content.action === 'link' ? 'openUrl' : content.action;
+          runAction(action, content.target, wrapper);
+        });
+      }
+    } else if (el.type === 'hotspot') {
+      wrapper.appendChild(renderHotspot(content));
+    } else if (el.type === 'video') {
+      wrapper.appendChild(renderVideo(content));
+    } else if (el.type === 'audio') {
+      wrapper.appendChild(renderAudio(content));
+    } else if (el.type === 'quiz') {
+      wrapper.appendChild(renderQuiz(content));
+    } else if (el.type === 'divider') {
+      var dividerWrap = document.createElement('div');
+      dividerWrap.className = 'lf-divider-wrap';
+      var divider = document.createElement('hr');
+      divider.className = 'lf-divider';
+      divider.style.borderTop = (content.thickness || 2) + 'px solid ' + (content.color || '#e2e8f0');
+      dividerWrap.appendChild(divider);
+      wrapper.appendChild(dividerWrap);
+    }
+
+    bindInteractions(wrapper, interactions);
+    return wrapper;
+  }
+
+  function renderShape(el) {
+    var content = el.content || {};
+    var type = content.shapeType || 'rectangle';
+    if (['triangle', 'diamond', 'star', 'arrow'].includes(type)) {
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', String(el.width || 0));
+      svg.setAttribute('height', String(el.height || 0));
+      svg.setAttribute('viewBox', '0 0 ' + (el.width || 0) + ' ' + (el.height || 0));
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      var polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      polygon.setAttribute('points', getPolygonPoints(type, el.width || 0, el.height || 0));
+      polygon.setAttribute('fill', content.fillColor || '#6c47ff');
+      polygon.setAttribute('stroke', content.borderColor || 'transparent');
+      polygon.setAttribute('stroke-width', String(content.borderWidth || 0));
+      svg.appendChild(polygon);
+      return svg;
+    }
+
+    var div = document.createElement('div');
+    div.className = 'lf-el-content';
+    div.style.background = content.fillColor || '#6c47ff';
+    div.style.border = (content.borderWidth || 0) + 'px solid ' + (content.borderColor || 'transparent');
+    div.style.opacity = content.opacity == null ? '1' : String(content.opacity);
+    div.style.borderRadius = type === 'circle' ? '50%' : (content.borderRadius || 0) + 'px';
+    return div;
+  }
+
+  function getPolygonPoints(type, width, height) {
+    if (type === 'triangle') return (width / 2) + ',0 ' + width + ',' + height + ' 0,' + height;
+    if (type === 'diamond') return (width / 2) + ',0 ' + width + ',' + (height / 2) + ' ' + (width / 2) + ',' + height + ' 0,' + (height / 2);
+    if (type === 'arrow') {
+      return '0,' + (height * 0.3) + ' ' + (width * 0.6) + ',' + (height * 0.3) + ' ' + (width * 0.6) + ',0 ' + width + ',' + (height / 2) + ' ' + (width * 0.6) + ',' + height + ' ' + (width * 0.6) + ',' + (height * 0.7) + ' 0,' + (height * 0.7);
+    }
+    if (type === 'star') {
+      var points = [];
+      var cx = width / 2;
+      var cy = height / 2;
+      var outerR = Math.min(width, height) / 2;
+      var innerR = outerR * 0.4;
+      for (var index = 0; index < 10; index++) {
+        var angle = ((index * 36) - 90) * Math.PI / 180;
+        var radius = index % 2 === 0 ? outerR : innerR;
+        points.push((cx + radius * Math.cos(angle)) + ',' + (cy + radius * Math.sin(angle)));
+      }
+      return points.join(' ');
+    }
+    return '';
+  }
+
+  function applyButtonStyle(button, content, themeConfig) {
+    var primary = themeConfig.primaryColor || '#6c47ff';
+    var variants = {
+      primary: { background: primary, color: '#ffffff', border: 'none' },
+      secondary: { background: '#f0f0f0', color: '#333333', border: '1px solid #dbe3ef' },
+      outline: { background: 'transparent', color: primary, border: '2px solid ' + primary },
+      ghost: { background: 'transparent', color: primary, border: 'none' },
+      danger: { background: '#ef4444', color: '#ffffff', border: 'none' },
+    };
+    var variant = variants[content.variant || 'primary'] || variants.primary;
+    button.style.background = content.bgColor || variant.background;
+    button.style.color = content.textColor || variant.color;
+    button.style.border = content.borderColor ? '1px solid ' + content.borderColor : variant.border;
+  }
+
+  function renderHotspot(content) {
+    var root = document.createElement('div');
+    root.className = 'lf-el-content';
+    root.style.position = 'relative';
+
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'lf-hotspot-btn';
+    button.textContent = content.icon || '?';
+    button.style.background = content.bgColor || '#6c47ff';
+    button.style.color = content.iconColor || '#ffffff';
+    button.style.borderRadius = (content.borderRadius == null ? 999 : content.borderRadius) >= 999 ? '50%' : (content.borderRadius || 0) + 'px';
+
+    var popup = document.createElement('div');
+    popup.className = 'lf-hotspot-popup';
+    popup.style.background = content.popupBgColor || '#ffffff';
+    popup.style.color = content.popupTextColor || '#1a1a2e';
+
+    var header = document.createElement('div');
+    header.className = 'lf-hotspot-header';
+    var title = document.createElement('div');
+    title.className = 'lf-hotspot-title';
+    title.textContent = content.popupTitle || 'Info';
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'lf-hotspot-close';
+    close.textContent = '×';
+    close.addEventListener('click', function (event) {
+      event.stopPropagation();
+      popup.classList.remove('is-open');
+    });
+    header.appendChild(title);
+    header.appendChild(close);
+
+    var body = document.createElement('div');
+    body.className = 'lf-hotspot-body';
+    body.textContent = content.popupContent || 'Add your content in the editor.';
+
+    popup.appendChild(header);
+    popup.appendChild(body);
+
+    button.addEventListener('click', function (event) {
+      event.stopPropagation();
+      popup.classList.toggle('is-open');
+    });
+
+    root.appendChild(button);
+    root.appendChild(popup);
+    return root;
+  }
+
+  function renderVideo(content) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'lf-video';
+    var src = String(content.src || '').trim();
+    var embed = toEmbedUrl(src);
+
+    if (embed) {
+      var frame = document.createElement('iframe');
+      frame.src = embed;
+      frame.setAttribute('frameborder', '0');
+      frame.setAttribute('allowfullscreen', 'true');
+      frame.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+      wrapper.appendChild(frame);
+      return wrapper;
+    }
+
+    if (!src) {
+      var empty = document.createElement('div');
+      empty.className = 'lf-empty';
+      empty.textContent = 'No video source';
+      wrapper.appendChild(empty);
+      return wrapper;
+    }
+
+    var video = document.createElement('video');
+    video.src = src;
+    if (content.poster) video.poster = content.poster;
+    video.controls = content.controls !== false;
+    video.autoplay = Boolean(content.autoplay);
+    video.loop = Boolean(content.loop);
+    video.muted = Boolean(content.muted);
+    video.style.objectFit = content.objectFit || 'cover';
+    wrapper.appendChild(video);
+    return wrapper;
+  }
+
+  function toEmbedUrl(src) {
+    if (!src) return '';
+    if (src.includes('youtube.com/embed/')) return src;
+    if (src.includes('youtu.be/') || src.includes('youtube.com/watch')) {
+      var ytMatch = src.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+      return ytMatch ? 'https://www.youtube.com/embed/' + ytMatch[1] : '';
+    }
+    if (src.includes('player.vimeo.com/video/')) return src;
+    if (src.includes('vimeo.com/')) {
+      var vimeoMatch = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+      return vimeoMatch ? 'https://player.vimeo.com/video/' + vimeoMatch[1] : '';
+    }
+    return '';
+  }
+
+  function renderAudio(content) {
+    var wrap = document.createElement('div');
+    wrap.className = 'lf-audio-card';
+    wrap.style.background = content.bgColor || '#ede7ff';
+
+    var icon = document.createElement('div');
+    icon.className = 'lf-audio-icon';
+    icon.style.background = content.accentColor || '#6c47ff';
+    icon.textContent = '♪';
+
+    var label = document.createElement('div');
+    label.className = 'lf-audio-label';
+    label.style.color = content.textColor || '#555555';
+    label.textContent = content.label || 'Audio Player';
+
+    var audio = document.createElement('audio');
+    audio.className = 'lf-audio-player';
+    audio.src = content.src || '';
+    audio.controls = content.controls !== false;
+    audio.autoplay = Boolean(content.autoplay);
+    audio.loop = Boolean(content.loop);
+
+    wrap.appendChild(icon);
+    wrap.appendChild(label);
+    wrap.appendChild(audio);
+    return wrap;
+  }
+
+  function renderQuiz(content) {
+    var root = document.createElement('div');
+    root.className = 'lf-quiz';
+    root.style.background = content.cardBgColor || '#ffffff';
+    root.style.color = content.questionColor || '#1a1a2e';
+    root.style.setProperty('--quiz-accent', content.accentColor || '#6c47ff');
+
+    var question = document.createElement('p');
+    question.className = 'lf-quiz-question';
+    question.style.color = content.questionColor || '#1a1a2e';
+    question.textContent = content.question || 'Question';
+
+    var optionsWrap = document.createElement('div');
+    optionsWrap.className = 'lf-quiz-options';
+    var optionButtons = [];
+    var selectedIndex = null;
+    var submitted = false;
+    var correctIndex = Number(content.correctIndex || 0);
+
+    (Array.isArray(content.options) ? content.options : []).forEach(function (option, optionIndex) {
+      var optionBtn = document.createElement('button');
+      optionBtn.type = 'button';
+      optionBtn.className = 'lf-quiz-option';
+      optionBtn.style.borderColor = '#dbe3ef';
+
+      var letter = document.createElement('span');
+      letter.className = 'lf-quiz-letter';
+      letter.textContent = String.fromCharCode(65 + optionIndex);
+
+      var text = document.createElement('span');
+      text.className = 'lf-quiz-text';
+      text.textContent = option;
+
+      optionBtn.appendChild(letter);
+      optionBtn.appendChild(text);
+      optionBtn.addEventListener('click', function () {
+        if (submitted) return;
+        selectedIndex = optionIndex;
+        syncQuizState();
+      });
+      optionsWrap.appendChild(optionBtn);
+      optionButtons.push(optionBtn);
+    });
+
+    var feedback = document.createElement('div');
+    feedback.className = 'lf-quiz-feedback';
+
+    var actions = document.createElement('div');
+    actions.className = 'lf-quiz-actions';
+
+    var submit = document.createElement('button');
+    submit.type = 'button';
+    submit.className = 'lf-quiz-submit';
+    submit.textContent = 'Submit';
+    submit.style.background = content.accentColor || '#6c47ff';
+    submit.style.color = '#ffffff';
+    submit.disabled = true;
+    submit.addEventListener('click', function () {
+      if (selectedIndex == null) return;
+      submitted = true;
+      syncQuizState();
+    });
+
+    var reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'lf-quiz-reset';
+    reset.textContent = 'Try Again';
+    reset.style.background = '#f0f0f0';
+    reset.style.color = '#333333';
+    reset.style.display = 'none';
+    reset.addEventListener('click', function () {
+      selectedIndex = null;
+      submitted = false;
+      syncQuizState();
+    });
+
+    actions.appendChild(submit);
+    actions.appendChild(reset);
+
+    root.appendChild(question);
+    root.appendChild(optionsWrap);
+    root.appendChild(feedback);
+    root.appendChild(actions);
+
+    function syncQuizState() {
+      optionButtons.forEach(function (button, optionIndex) {
+        button.classList.remove('selected', 'correct', 'wrong');
+        button.disabled = submitted;
+        button.style.borderColor = optionIndex === selectedIndex ? (content.accentColor || '#6c47ff') : '#dbe3ef';
+        button.style.background = optionIndex === selectedIndex ? 'rgba(108, 71, 255, .10)' : 'rgba(255,255,255,.92)';
+        if (submitted) {
+          if (optionIndex === correctIndex) {
+            button.classList.add('correct');
+          } else if (optionIndex === selectedIndex && selectedIndex !== correctIndex) {
+            button.classList.add('wrong');
+          }
+        } else if (optionIndex === selectedIndex) {
+          button.classList.add('selected');
+        }
+      });
+
+      submit.disabled = selectedIndex == null || submitted;
+      submit.style.display = submitted ? 'none' : 'inline-flex';
+      reset.style.display = submitted ? 'inline-flex' : 'none';
+
+      if (!submitted) {
+        feedback.className = 'lf-quiz-feedback';
+        feedback.textContent = '';
+        return;
+      }
+
+      var correct = selectedIndex === correctIndex;
+      feedback.className = 'lf-quiz-feedback show ' + (correct ? 'correct' : 'wrong');
+      feedback.textContent = correct
+        ? '✓ Correct!'
+        : ('✗ Incorrect.' + (content.explanation ? ' ' + content.explanation : ''));
+    }
+
+    return root;
+  }
+
+  function bindInteractions(wrapper, interactions) {
+    if (!interactions.length) return;
+
+    wrapper._lfLoadInteractions = interactions.filter(function (interaction) {
+      return interaction && interaction.trigger === 'load';
+    });
+
+    interactions.forEach(function (interaction) {
+      if (!interaction || !interaction.action) return;
+      if (interaction.trigger === 'click') {
+        wrapper.addEventListener('click', function (event) {
+          if (event.target.closest('.lf-button')) return;
+          runAction(interaction.action, interaction.value, wrapper);
+        });
+      }
+      if (interaction.trigger === 'hover') {
+        wrapper.addEventListener('mouseenter', function () {
+          runAction(interaction.action, interaction.value, wrapper);
+        });
+      }
+    });
+  }
+
+  function cssEscape(value) {
+    return String(value).replace(/([ #;?%&,.+*~\':"!^$\[\]()=>|\/])/g, '\\$1');
+  }
+})();
+`
+}
   return `
   <section class="slide" style="position:relative;width:960px;height:540px;background:${bg};overflow:hidden;flex-shrink:0;" data-slide="${slide.id}">
     ${elHTML}
@@ -176,10 +1251,8 @@ async function exportHTML() {
     }
   }
 
-  // Clone project slides so we don't mutate state
-  const slides = JSON.parse(JSON.stringify([...(p.slides || [])])).sort((a, b) => a.order - b.order)
+  const slides = JSON.parse(JSON.stringify([...(p.slides || [])])).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-  // Pre-process assets in slides if the option is checked
   if (exportIncludeAssets.value) {
     for (const s of slides) {
       if (s.backgroundType === 'image' && s.backgroundImage) {
@@ -199,81 +1272,47 @@ async function exportHTML() {
     }
   }
 
-  const slidesHTML = slides.map(s => buildHTMLSlide(s, p.theme)).join('\n')
+  const exportName = sanitizeExportName(exportFileName.value || p.name || 'presentation')
+  const payload = {
+    name: p.name,
+    theme: p.theme || {},
+    settings: p.settings || {},
+    slides,
+  }
+  const projectData = JSON.stringify(payload)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
 
-  const css = `
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: ${p.theme?.fontFamily || 'Inter, sans-serif'}; overflow: hidden; }
-.presentation { position: relative; }
-.slide { display: none; }
-.slide.active { display: block; }
-.nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; z-index: 1000; }
-.nav-btn { background: rgba(255,255,255,.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.2); color: #fff; padding: 8px 20px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background .15s; }
-.nav-btn:hover { background: rgba(255,255,255,.3); }
-.nav-counter { color: rgba(255,255,255,.7); font-size: 13px; min-width: 60px; text-align: center; }
-.progress { position: fixed; top: 0; left: 0; height: 3px; background: ${p.theme?.primaryColor || '#6c47ff'}; transition: width .3s ease; z-index: 1001; }
-`
-
-  const js = `
-var current = 0;
-var slides = document.querySelectorAll('.slide');
-var total = slides.length;
-
-function show(idx) {
-  slides.forEach(function(s, i) { s.classList.toggle('active', i === idx); });
-  document.getElementById('counter').textContent = (idx + 1) + ' / ' + total;
-  document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
-  current = idx;
-}
-
-function next() { if (current < total - 1) show(current + 1); }
-function prev() { if (current > 0) show(current - 1); }
-
-function checkAnswer(el, correct, fbId, explanation) {
-  var fb = document.getElementById(fbId);
-  var isCorrect = parseInt(el.value) === correct;
-  fb.style.display = 'block';
-  fb.style.background = isCorrect ? '#dcfce7' : '#fee2e2';
-  fb.style.color = isCorrect ? '#166534' : '#991b1b';
-  fb.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect. ' + (explanation || 'Try again.');
-}
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
-});
-
-// Scale to window
-function resize() {
-  var el = document.getElementById('presentation');
-  var scale = Math.min(window.innerWidth / 960, window.innerHeight / 540);
-  el.style.transform = 'scale(' + scale + ')';
-  el.style.transformOrigin = 'center center';
-}
-window.addEventListener('resize', resize);
-resize();
-show(0);
-`
+  const css = buildRuntimeCSS(p.theme, p.settings)
+  const js = buildRuntimeJS()
+  const dataScriptTag = '<' + `script id="lf-data" type="application/json">${projectData}</` + 'script>'
+  const runtimeScriptTag = '<' + 'script src="script.js"></' + 'script>'
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${exportFileName.value || 'presentation'}</title>
+<title>${exportName}</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="lf-shell">
 <div class="progress" id="progress"></div>
-<div class="presentation" id="presentation">
-${slidesHTML}
+<div class="lf-grid"></div>
+<div class="lf-stage-shell">
+  <div class="presentation" id="presentation"></div>
 </div>
+<div class="dot-nav" id="dot-nav"></div>
 <nav class="nav">
-  <button class="nav-btn" onclick="prev()">← Prev</button>
+  <button class="nav-btn" id="prev-btn" type="button">← Prev</button>
   <span class="nav-counter" id="counter">1 / ${slides.length}</span>
-  <button class="nav-btn" onclick="next()">Next →</button>
+  <button class="nav-btn" id="next-btn" type="button">Next →</button>
 </nav>
-<script src="script.js"><\/script>
+</div>
+${dataScriptTag}
+${runtimeScriptTag}
 </body>
 </html>`
 
@@ -285,7 +1324,7 @@ ${slidesHTML}
   const url = URL.createObjectURL(content)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${exportFileName.value || 'presentation'}.zip`
+  a.download = `${exportName}.zip`
   a.click()
   URL.revokeObjectURL(url)
   exportStatus.value = 'success'
